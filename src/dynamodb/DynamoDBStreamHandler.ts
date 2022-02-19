@@ -4,7 +4,7 @@ import {FunctionDefinition, getFunctionsWithStreamEvents} from "./support";
 import * as Serverless from "serverless";
 import {default as Lambda} from 'serverless-offline/dist/lambda'
 import {StreamHandler} from "../StreamHandler";
-import {StringKeyObject} from "../common";
+import {StringKeyObject} from "../utils";
 
 
 export class DynamoDBStreamHandler implements StreamHandler {

@@ -1,6 +1,6 @@
 import {FilterPatterns} from "./dynamodb/filterPatterns/filterGrammar";
 import * as Serverless from "serverless";
-import {StringKeyObject} from "./common";
+import {StringKeyObject} from "./utils";
 
 
 export interface FunctionDefinition<EventType> {

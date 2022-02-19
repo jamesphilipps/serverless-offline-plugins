@@ -2,7 +2,8 @@ import {ActiveQueueDef} from "./QueueDef";
 import {DEFAULT_SQS_POLL_INTERVAL_MS} from "../constants";
 import {log, logDebug} from "../logging";
 import {ReceiveMessageCommand, SQSClient} from "@aws-sdk/client-sqs";
-import {StringKeyObject} from "../common";
+import PluginConfiguration from "../PluginConfiguration";
+import {StringKeyObject} from "../utils";
 
 export default class SQSPoller {
     pollInterval?: NodeJS.Timer

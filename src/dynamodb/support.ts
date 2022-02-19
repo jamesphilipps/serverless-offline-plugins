@@ -1,6 +1,6 @@
 import {DynamoDbStreamsEventDefinition} from "./types";
 import {log} from "../logging";
-import {StringKeyObject} from "../common";
+import {StringKeyObject} from "../utils";
 
 export type Event = DynamoDbStreamsEventDefinition | any
 

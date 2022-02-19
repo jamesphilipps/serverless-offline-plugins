@@ -11,7 +11,7 @@ import {DynamoDbStreamsEventDefinition} from "./types";
 
 import * as DynamodbStreamsClient from "aws-sdk/clients/dynamodbstreams"
 import {FilterPatterns} from "./filterPatterns/filterGrammar";
-import {StringKeyObject} from "../common";
+import {StringKeyObject} from "../utils";
 
 export default class DynamoDBStreamsController {
     private readonly dynamodbClient: DynamoDBClient

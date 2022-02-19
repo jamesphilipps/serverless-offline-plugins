@@ -2,10 +2,12 @@ import * as Serverless from "serverless"
 import {LogOptions} from "serverless"
 import {logDebug, setLog} from "./logging";
 import {SLS_CUSTOM_OPTION, SLS_OFFLINE_OPTION} from "./constants";
-import {getPluginConfiguration, StringKeyObject} from "./common";
 import {StreamHandler} from "./StreamHandler";
 import {SQStreamHandler} from "./sqs/SQStreamHandler";
 import {DynamoDBStreamHandler} from "./dynamodb/DynamoDBStreamHandler";
+import {getDefaultPluginConfiguration} from "./PluginConfiguration";
+import objectMerge = require('lodash.merge');
+import {getPluginConfiguration, StringKeyObject} from "./utils";
 
 export default class ServerlessDynamoStreamsPlugin {
     commands: object = []
@@ -14,7 +16,7 @@ export default class ServerlessDynamoStreamsPlugin {
 
     activeHandlers: StreamHandler[] = []
 
-    constructor(private serverless: Serverless,  cliOptions: StringKeyObject<any>) {
+    constructor(private serverless: Serverless, cliOptions: StringKeyObject<any>) {
         setLog((...args: [string, string, LogOptions]) => serverless.cli.log(...args))
 
         this.options = mergeOptions(serverless, cliOptions)
@@ -28,13 +30,13 @@ export default class ServerlessDynamoStreamsPlugin {
 
 
     async start() {
-        const config = getPluginConfiguration(this.serverless)
+        const config = objectMerge(getDefaultPluginConfiguration(), getPluginConfiguration(this.serverless))
 
         if (config?.dynamodb?.enabled) {
             this.activeHandlers.push(new DynamoDBStreamHandler(this.serverless, this.options))
         }
         if (config?.sqs?.enabled) {
-            this.activeHandlers.push(new SQStreamHandler(this.serverless, this.options))
+            this.activeHandlers.push(new SQStreamHandler(this.serverless, this.options, config))
         }
 
         return Promise.all(this.activeHandlers.map(h => h.start()))

@@ -1,6 +1,6 @@
 import {FunctionDefinition} from "serverless";
 import {Event, getFunctionsWithStreamEvents} from "./support";
-import {StringKeyObject} from "../common";
+import {StringKeyObject} from "../utils";
 
 describe("getFunctionsWithStreamEvents", () => {
     it("filters events correctly", () => {
