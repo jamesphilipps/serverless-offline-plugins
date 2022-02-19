@@ -1,6 +1,7 @@
-import {StringKeyObject} from "./types";
 
 // TODO: not sure how collection types work with filters. Not supported for now
+
+import {StringKeyObject} from "../common";
 
 type DynamoString = { S: string }
 type DynamoNumber = { N: number }

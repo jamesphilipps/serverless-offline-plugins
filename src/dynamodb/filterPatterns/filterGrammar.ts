@@ -1,6 +1,7 @@
-import {StringKeyObject} from "../types";
 
 // Dynamo scalars are expressed as arrays to allow OR logic
+import {StringKeyObject} from "../../common";
+
 type DynamoString = { S: string[] }
 type DynamoNumber = { N: number[] }
 type DynamoBinary = { B: string[] }

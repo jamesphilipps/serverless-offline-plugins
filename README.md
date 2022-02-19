@@ -74,4 +74,4 @@ custom:
 ```
 
 # Filter Patterns
-See the [Filter Patterns Guide](src/filterPatterns/README.md)
+See the [Filter Patterns Guide](src/dynamodb/filterPatterns/README.md)

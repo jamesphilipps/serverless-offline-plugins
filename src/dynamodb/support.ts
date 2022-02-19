@@ -1,6 +1,6 @@
-import {DynamoDbStreamsEventDefinition, StringKeyObject} from "./types";
-import {log} from "./logging";
-import {FilterPatterns} from "./filterPatterns/filterGrammar";
+import {DynamoDbStreamsEventDefinition} from "./types";
+import {log} from "../logging";
+import {StringKeyObject} from "../common";
 
 export type Event = DynamoDbStreamsEventDefinition | any
 
@@ -22,7 +22,6 @@ export const getFunctionsWithStreamEvents = (
 ) => (functions: string[]): FunctionWithStreamEvents[] => functions
     .map((functionKey) => {
         const functionDefinition = getFunction(functionKey)
-        console.log("FUNCDEF", JSON.stringify(functionDefinition))
         return {functionKey, functionDefinition, events: getStreamEvents(functionDefinition)}
     })
     .filter(({events}) => events.length > 0)

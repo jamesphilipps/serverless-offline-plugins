@@ -1,18 +1,19 @@
 import {Writable} from "stream"
 import * as  DynamodbStreamsReadable from "dynamodb-streams-readable"
-import {log, logDebug} from "./logging";
+import {log, logDebug} from "../logging";
 import * as Serverless from "serverless";
-import {SLS_CUSTOM_OPTION} from "./constants";
+import {SLS_CUSTOM_OPTION} from "../constants";
 import {FunctionWithStreamEvents} from "./support";
 import {allowEvent} from "./filterPatterns/filterPatterns";
 
 import {DescribeTableCommand, DynamoDBClient, waitUntilTableExists} from '@aws-sdk/client-dynamodb'
-import {DynamoDbStreamsEventDefinition, StringKeyObject} from "./types";
+import {DynamoDbStreamsEventDefinition} from "./types";
 
 import * as DynamodbStreamsClient from "aws-sdk/clients/dynamodbstreams"
 import {FilterPatterns} from "./filterPatterns/filterGrammar";
+import {StringKeyObject} from "../common";
 
-export default class StreamsController {
+export default class DynamoDBStreamsController {
     private readonly dynamodbClient: DynamoDBClient
     private readonly dynamodbStreamsClient: DynamodbStreamsClient
     private readableStreams: typeof DynamodbStreamsReadable[] = []
@@ -61,6 +62,7 @@ export default class StreamsController {
         return this.dynamodbClient.send(new DescribeTableCommand({TableName}))
     }
 
+    // TODO: use the utils function (see SQS)
     private _extractTableNameFromARN(arn: any) {
         if (typeof arn === 'string') {
             if (arn.startsWith("arn:")) {
