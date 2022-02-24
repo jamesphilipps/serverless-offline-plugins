@@ -1,0 +1,48 @@
+name: Build Distribution
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  compile:
+    name: Compile
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 14.x ]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set CI Identity
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "<>"
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Clean install dependencies
+        run: npm ci
+
+      - name: Clean Dist Dir
+        run: rm -rf dist
+
+      - name: Compile
+        run: tsc --build
+
+      - name: Commit
+        continue-on-error: true
+        run: |
+          git add -A
+          git commit -m "Generate dist files"
+
+      - name: Push
+        continue-on-error: false
+        run: git push origin

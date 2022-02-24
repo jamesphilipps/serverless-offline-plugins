@@ -12,7 +12,6 @@
 
 # production
 **/tsconfig.tsbuildinfo
-**/dist
 **/.build
 **/.esbuild
 

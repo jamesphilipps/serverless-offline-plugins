@@ -7,6 +7,7 @@ export interface AdditionalQueue {
 
 export  interface PluginConfiguration {
     dynamodb?: {
+        // TODO: no config options for dynamodb streams
         enabled?: boolean
     }
     sqs?: {

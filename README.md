@@ -1,4 +1,4 @@
-# serverless-offline-dynamodb-streams-handler 
+# serverless-offline-streams
 
 This plugin acts as a bridge between the [Serverless Offline](https://github.com/dherault/serverless-offline) and 
 [DynamoDB Local](https://github.com/99x/serverless-dynamodb-local) plugins to provide DynamoDB streams functionality for
@@ -6,34 +6,53 @@ to your Serverless Offline stacks.
 
 It is inspired by an earlier plugin: [serverless-offline-dynamodb-streams](https://github.com/CoorpAcademy/serverless-plugin)
 
+
+TODO: SQS examples  
+
 # Supported Features
-* DynamoDB Streams events
 * Typescript
-* Event Filtering
+* SQS queue listeners
+* DynamoDB Streams events
+* DynamoDB Streams event filtering
 
 # Installation
 
 ```bash
-npm install serverless-offline-dynamodb-streams-handler
+npm install serverless-offline-streams
 ```
 
 In your serverless.yml:
 ```yaml
 plugins:
-  - serverless-offline-dynamodb-streams-handler
+  - serverless-offline-streams
 ```
 
 # Configuration
 ```yaml
-plugins:
-  - serverless-offline-dynamodb-streams-handler
 custom:
-  serverless-offline-dynamodb-streams-handler:
+  serverless-offline-streams:
+    dynamodb:
       endpoint: http://localhost:8000 # Required - dynamodb local endpoint
       tableNames: # Optional. See below for explanation of table names mapping 
         tableKey1: tableName1
         tableKey2: tableName2
+    sqs:
+      enabled: false # Optional. Whether to activate SQS queue event mappings
+      host: http://127.0.0.1:8050 # Required. Host & port of elasticmq instance  
+      pollInterval: 5 # Optional. Interval (in seconds) to poll queues for new messages
+      createQueuesFromResources: true # Optional. If true, will scan defined Resources for queues and create them according to the config
+      removeExistingQueuesOnStart: true # Optional. If true, will remove all existing queues in elasticmq on startup
+      purgeExistingQueuesOnStart: false # Optional. If true, will purge all existing queues in elasticmq on startup
+      additionalQueues: # Optional. Additional queues to create on startup
+        - myQueue1
+        - myQueue2
+      queueNames: # Optional. See below for explanation of table names mapping
+      # TODO: explanation of queueNames
+          queueKey1: queueName1
+          queueKey2: queueName2
 ```
+
+TODO: Setting up elastic mq and using with SQS
 
 ## Table Names
 * If you are using only string ARNS, the plugin will be able to extract the table names from the ARN.
