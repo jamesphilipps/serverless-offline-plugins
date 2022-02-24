@@ -10,7 +10,8 @@ import getQueuesToCreate from "./functions/getQueuesToCreate";
 import setupQueues from "./functions/setupQueues";
 import PluginConfiguration from "../PluginConfiguration";
 import getFunctionQueueDefinitions from "./functions/getFunctionQueueDefinitions";
-import {StringKeyObject} from "../utils";
+import {getHandlersAsLambdaFunctionDefinitions, StringKeyObject} from "../utils";
+import getAdditionalQueueDefinitions from "./functions/getAdditionalQueueDefinitions";
 
 
 export class SQStreamHandler implements StreamHandler {
@@ -23,8 +24,13 @@ export class SQStreamHandler implements StreamHandler {
 
     async start() {
         log(`Starting Offline SQS Streams: ${this.options.stage}/${this.options.region}..`)
+        const {service} = this.serverless
         this.sqsClient = await this._createSQSClient()
+
+        // TODO: create all lambdas at plugin level and push them down into the handlers. DynamoDbStream Handler has a
+        //  better implementation to create only lambdas with stream events
         this.slsOfflineLambda = new Lambda(this.serverless, this.options)
+        this.slsOfflineLambda.create(getHandlersAsLambdaFunctionDefinitions(this.serverless))
 
         const resources = this.serverless.resources?.Resources
 
@@ -34,8 +40,10 @@ export class SQStreamHandler implements StreamHandler {
         logDebug("resourceQueueDefinitions", resourceQueueDefinitions)
         const functionQueueDefinitions = getFunctionQueueDefinitions(this.config, resources)(functionsWithSqsEvents)
         logDebug("functionQueueDefinitions", functionQueueDefinitions)
+        const additionalQueueDefinitions = getAdditionalQueueDefinitions(this.config)
+        logDebug("additionalQueueDefinitions", additionalQueueDefinitions)
 
-        const queuesToCreate = getQueuesToCreate(this.config)(resourceQueueDefinitions, functionQueueDefinitions)
+        const queuesToCreate = getQueuesToCreate(this.config)(resourceQueueDefinitions, functionQueueDefinitions, additionalQueueDefinitions)
         logDebug("queuesToCreate", queuesToCreate)
         const activeQueueDefinitions = await setupQueues(this.config, this.sqsClient)(queuesToCreate)
         logDebug("activeQueueDefinitions", activeQueueDefinitions)

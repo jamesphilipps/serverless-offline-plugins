@@ -35,6 +35,9 @@ describe('utils', () => {
             expect(func('k1')).toEqual('MAP1')
             expect(func('k2')).toEqual('MAP2')
         })
+        it('extracts name from "Fn::ImportValue" reference using provided function', () => {
+            expect(func({"Fn::ImportValue": 'k1'})).toEqual('MAP1')
+        })
         it('extracts name from resources using provided function', () => {
             expect(func(['k3', 'ARN'])).toEqual('RES3')
             expect(func(['k4', 'ARN'])).toEqual('RES4')
@@ -45,8 +48,11 @@ describe('utils', () => {
         it('throws meaningful error if cannot find mapping ARN', () => {
             expect(() => func('k7')).toThrow("No resource name mapping for arn: 'k7'. Add a mapping at 'MAPPINGS_PATH'")
         })
-        it('throws error if cannot detect ARN format', () => {
-            expect(() => func(['k3'])).toThrow("Cannot resolve arn: 'k3' to a resource name")
+        it('throws meaningful error if cannot detect ARN format from list', () => {
+            expect(() => func(['k3'])).toThrow(`Cannot resolve arn: '["k3"]' to a resource name`)
+        })
+        it('throws meaningful error if cannot detect ARN format from object', () => {
+            expect(() => func({Unknown: "K1"})).toThrow(`Cannot resolve arn: '{"Unknown":"K1"}' to a resource name`)
         })
     })
 

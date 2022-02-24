@@ -9,7 +9,7 @@ import {getDefaultPluginConfiguration} from "./PluginConfiguration";
 import objectMerge = require('lodash.merge');
 import {getPluginConfiguration, StringKeyObject} from "./utils";
 
-export default class ServerlessDynamoStreamsPlugin {
+export default class ServerlessOfflineStreamsPlugin {
     commands: object = []
     hooks: StringKeyObject<Function>
     options: StringKeyObject<any>
@@ -59,4 +59,4 @@ const mergeOptions = (serverless: Serverless, cliOptions: StringKeyObject<any>) 
     return {...offlineOptions, ...customOptions, ...extraOptions, ...cliOptions}
 }
 
-module.exports = ServerlessDynamoStreamsPlugin
+module.exports = ServerlessOfflineStreamsPlugin

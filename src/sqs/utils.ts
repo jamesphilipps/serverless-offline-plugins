@@ -3,7 +3,7 @@ import {QueueDef} from "./QueueDef";
 import PluginConfiguration from "../PluginConfiguration";
 import {extractResourceNameFromArn, StringKeyObject} from "../utils";
 
-
+// TODO: test
 export const getQueueNameFromArnString = (arn: string) => getQueueNameFromArnParts(arn.split(":"))
 export const getQueueNameFromArnParts = (parts: string[]) => parts[5]
 export const getQueueNameFromArn = (config: PluginConfiguration, resources: StringKeyObject<any>) => (arn: any) => {
@@ -13,8 +13,8 @@ export const getQueueNameFromArn = (config: PluginConfiguration, resources: Stri
             .filter(queue => queue.resourceKey === key)
             .map(queue => queue.name)
             .find(_ => true),
-        `custom.${SLS_CUSTOM_OPTION}.sqs.queueNames.${arn}`,
-        (key) => config.sqs?.queueNames?.[arn]
+        `custom.${SLS_CUSTOM_OPTION}.sqs.queueNames`,
+        (key) => config.sqs?.queueNames?.[key]
     )(arn)
 }
 

@@ -1,5 +1,4 @@
 import {getDefaultPluginConfiguration} from "../../PluginConfiguration";
-import getFunctionQueueDefinitions from "./getFunctionQueueDefinitions";
 import getQueuesToCreate from "./getQueuesToCreate";
 import {QueueDef} from "../QueueDef";
 
@@ -12,6 +11,7 @@ const queueDef = (name: string, handlerFunctions: string[], resourceKey?: string
 
 const resourceQueueDef = (name: string, resourceKey: string): QueueDef => queueDef(name, [], resourceKey)
 const functionQueueDef = (name: string, handlerFunctions: string[]): QueueDef => queueDef(name, handlerFunctions)
+const additionalQueueDef = (name: string): QueueDef => queueDef(name, [])
 
 describe('getQueuesToCreate', () => {
 
@@ -20,13 +20,24 @@ describe('getQueuesToCreate', () => {
         config.sqs.createQueuesFromResources = false
         const func = getQueuesToCreate(config)
 
-        it('uses only function queues', () => {
+        it('uses only function queues if no additional queues specified', () => {
             const resourceQueueDefinitions = [resourceQueueDef('rqueue1', 'rq1'),]
             const functionQueueDefinitions = [functionQueueDef('fqueue1', ['f1']),]
 
-            const queues = func(resourceQueueDefinitions, functionQueueDefinitions)
+            const queues = func(resourceQueueDefinitions, functionQueueDefinitions, [])
             expect(queues.length).toBe(1)
             expect(queues).toEqual(functionQueueDefinitions)
+        })
+
+        it('uses only function queues and additional queues', () => {
+            const resourceQueueDefinitions = [resourceQueueDef('rqueue1', 'rq1'),]
+            const functionQueueDefinitions = [functionQueueDef('fqueue1', ['f1']),]
+            const additionalQueueDefinitions = [additionalQueueDef('aqueue1')]
+
+            const queues = func(resourceQueueDefinitions, functionQueueDefinitions, additionalQueueDefinitions)
+            expect(queues.length).toBe(2)
+            expect(queues[0]).toEqual(functionQueueDefinitions[0])
+            expect(queues[1]).toEqual(additionalQueueDefinitions[0])
         })
 
         it('merges function queues', () => {
@@ -37,7 +48,7 @@ describe('getQueuesToCreate', () => {
                 functionQueueDef('fqueue2', ['f2']),
             ]
 
-            const queues = func(resourceQueueDefinitions, functionQueueDefinitions)
+            const queues = func(resourceQueueDefinitions, functionQueueDefinitions, [])
             expect(queues.length).toBe(2)
 
             expect(queues[0].name).toEqual('fqueue1')
@@ -53,14 +64,26 @@ describe('getQueuesToCreate', () => {
         config.sqs.createQueuesFromResources = true
         const func = getQueuesToCreate(config)
 
-        it('uses resource and function queues', () => {
+        it('uses resource and function queues if no additional queues specified', () => {
             const resourceQueueDefinitions = [resourceQueueDef('rqueue1', 'rq1'),]
             const functionQueueDefinitions = [functionQueueDef('fqueue1', ['f1']),]
 
-            const queues = func(resourceQueueDefinitions, functionQueueDefinitions)
+            const queues = func(resourceQueueDefinitions, functionQueueDefinitions, [])
             expect(queues.length).toBe(2)
             expect(queues[0]).toEqual(functionQueueDefinitions[0])
             expect(queues[1]).toEqual(resourceQueueDefinitions[0])
+        })
+
+        it('uses resource, function and additional queues if no additional queues specified', () => {
+            const resourceQueueDefinitions = [resourceQueueDef('rqueue1', 'rq1'),]
+            const functionQueueDefinitions = [functionQueueDef('fqueue1', ['f1']),]
+            const additionalQueueDefinitions = [additionalQueueDef('aqueue1')]
+
+            const queues = func(resourceQueueDefinitions, functionQueueDefinitions, additionalQueueDefinitions)
+            expect(queues.length).toBe(3)
+            expect(queues[0]).toEqual(functionQueueDefinitions[0])
+            expect(queues[1]).toEqual(additionalQueueDefinitions[0])
+            expect(queues[2]).toEqual(resourceQueueDefinitions[0])
         })
 
         it('merges function queues', () => {
@@ -71,7 +94,7 @@ describe('getQueuesToCreate', () => {
                 functionQueueDef('fqueue2', ['f2']),
             ]
 
-            const queues = func(resourceQueueDefinitions, functionQueueDefinitions)
+            const queues = func(resourceQueueDefinitions, functionQueueDefinitions, [])
             expect(queues.length).toBe(3)
 
             expect(queues[0].name).toEqual('fqueue1')

@@ -1,19 +1,11 @@
 import {DynamoDbStreamsEventDefinition} from "./types";
 import {log} from "../logging";
 import {StringKeyObject} from "../utils";
+import {FunctionDefinition, SlsOfflineLambdaFunctionDefinition} from "../types";
 
 export type Event = DynamoDbStreamsEventDefinition | any
 
-export interface FunctionDefinition {
-    name?: string
-    handler?: string
-    role?: string
-    events?: Event[]
-}
-
-export interface FunctionWithStreamEvents {
-    functionKey: string
-    functionDefinition: FunctionDefinition
+export interface FunctionWithStreamEvents extends SlsOfflineLambdaFunctionDefinition {
     events: DynamoDbStreamsEventDefinition[]
 }
 

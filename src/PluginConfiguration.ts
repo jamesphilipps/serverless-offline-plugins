@@ -1,7 +1,11 @@
 import {DEFAULT_SQS_POLL_INTERVAL_MS} from "./constants";
 import {StringKeyObject} from "./utils";
 
-interface PluginConfiguration {
+export interface AdditionalQueue {
+    name: string
+}
+
+export  interface PluginConfiguration {
     dynamodb?: {
         enabled?: boolean
     }
@@ -11,8 +15,9 @@ interface PluginConfiguration {
         createQueuesFromResources?: boolean
         removeExistingQueuesOnStart?: boolean
         purgeExistingQueuesOnStart?: boolean
-        pollInterval: number
-        queueNames: StringKeyObject<string>
+        queueNames?: StringKeyObject<string>
+        additionalQueues?: AdditionalQueue[]
+        pollInterval?: number
     }
 }
 
@@ -26,7 +31,8 @@ export const getDefaultPluginConfiguration = (): PluginConfiguration => ({
         removeExistingQueuesOnStart: true,
         purgeExistingQueuesOnStart: false,
         pollInterval: DEFAULT_SQS_POLL_INTERVAL_MS,
-        queueNames: {}
+        queueNames: {},
+        additionalQueues: []
     }
 })
 

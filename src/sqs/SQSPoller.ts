@@ -21,6 +21,7 @@ export default class SQSPoller {
 
     private async _poll() {
         const processMessages = async (queue: ActiveQueueDef) => {
+            // TODO: option to invoke lambdas serially  in parallel. Currently happens in parallel
             const activeHandlers: Promise<void>[] = []
             let messageCount: number = 0
             do {
@@ -28,29 +29,34 @@ export default class SQSPoller {
                     QueueUrl: queue.queueUrl,
                 }))
 
-                let messageCount = response.Messages?.length || 0;
+                const messageCount = response.Messages?.length || 0;
                 if (messageCount > 0) {
                     log(`Retrieved ${messageCount} messages for '${queue.name}`)
 
                     const event = {
                         Records: response.Messages.map((message) => ({
                             messageId: message.MessageId,
-                            "receiptHandle": message.ReceiptHandle,
-                            "body": message.Body,
-                            "attributes": message.Attributes,
-                            "messageAttributes": message.MessageAttributes,
-                            "md5OfBody": message.MD5OfBody,
-                            "eventSource": "aws:sqs",
-                            "eventSourceARN": queue.queueArn,
-                            "awsRegion": this.options.region
+                            receiptHandle: message.ReceiptHandle,
+                            body: message.Body,
+                            attributes: message.Attributes,
+                            messageAttributes: message.MessageAttributes,
+                            md5OfBody: message.MD5OfBody,
+                            eventSource: "aws:sqs",
+                            eventSourceARN: queue.queueArn,
+                            awsRegion: this.options.region
                         }))
                     }
 
-                    const lambdaFunction = this.lambda.get(queue.handlerFunctions)
-                    lambdaFunction.setEvent(event)
+                    logDebug("lambda event input", JSON.stringify(event))
+                    queue.handlerFunctions.forEach((handlerFunction) => {
+                        logDebug("lambda name", handlerFunction)
+                        const lambdaFunction = this.lambda.get(handlerFunction)
+                        logDebug("lambda definition", JSON.stringify(lambdaFunction))
 
-                    // Run handler and return on completion
-                    activeHandlers.push(lambdaFunction.runHandler())
+                        lambdaFunction.setEvent(event)
+                        activeHandlers.push(lambdaFunction.runHandler())
+                    })
+
                 } else {
                     logDebug(`No messages for '${queue.name}`)
                 }
