@@ -79,7 +79,8 @@ var ServerlessOfflineStreamsPlugin = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var config;
             return __generator(this, function (_c) {
-                config = objectMerge((0, PluginConfiguration_1.getDefaultPluginConfiguration)(), (0, utils_1.getPluginConfiguration)(this.serverless));
+                config = (0, PluginConfiguration_1.validateConfig)(objectMerge((0, PluginConfiguration_1.getDefaultPluginConfiguration)(), (0, utils_1.getPluginConfiguration)(this.serverless)));
+                (0, logging_1.logDebug)("Plugin Config", config);
                 if ((_a = config === null || config === void 0 ? void 0 : config.dynamodb) === null || _a === void 0 ? void 0 : _a.enabled) {
                     this.activeHandlers.push(new DynamoDBStreamHandler_1.DynamoDBStreamHandler(this.serverless, this.options));
                 }

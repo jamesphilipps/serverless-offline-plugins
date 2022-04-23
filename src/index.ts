@@ -5,7 +5,7 @@ import {SLS_CUSTOM_OPTION, SLS_OFFLINE_OPTION} from "./constants";
 import {StreamHandler} from "./StreamHandler";
 import {SQStreamHandler} from "./sqs/SQStreamHandler";
 import {DynamoDBStreamHandler} from "./dynamodb/DynamoDBStreamHandler";
-import {getDefaultPluginConfiguration} from "./PluginConfiguration";
+import {getDefaultPluginConfiguration, validateConfig} from "./PluginConfiguration";
 import objectMerge = require('lodash.merge');
 import {getPluginConfiguration, StringKeyObject} from "./utils";
 
@@ -30,7 +30,11 @@ export default class ServerlessOfflineStreamsPlugin {
 
 
     async start() {
-        const config = objectMerge(getDefaultPluginConfiguration(), getPluginConfiguration(this.serverless))
+        const config = validateConfig(
+            objectMerge(getDefaultPluginConfiguration(), getPluginConfiguration(this.serverless))
+        )
+        logDebug("Plugin Config", config)
+
 
         if (config?.dynamodb?.enabled) {
             this.activeHandlers.push(new DynamoDBStreamHandler(this.serverless, this.options))

@@ -36,7 +36,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-var constants_1 = require("../constants");
 var logging_1 = require("../logging");
 var client_sqs_1 = require("@aws-sdk/client-sqs");
 var SQSPoller = /** @class */ (function () {
@@ -48,103 +47,172 @@ var SQSPoller = /** @class */ (function () {
         this.lambda = lambda;
     }
     SQSPoller.prototype.start = function () {
-        this.pollInterval = setInterval(this._poll.bind(this), constants_1.DEFAULT_SQS_POLL_INTERVAL_MS);
+        this._clearNextPoll();
+        this._scheduleNextPoll(false);
     };
     SQSPoller.prototype.stop = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                clearInterval(this.pollInterval);
+                this._clearNextPoll();
                 return [2 /*return*/];
             });
         });
     };
+    SQSPoller.prototype._clearNextPoll = function () {
+        if (this.nextPoll)
+            clearTimeout(this.nextPoll);
+    };
+    SQSPoller.prototype._scheduleNextPoll = function (messagesRetrievedOnLastPoll) {
+        var _this = this;
+        var getNextPollInterval = function () {
+            var pollConfig = _this.config.sqs.pollConfig;
+            var strategy = pollConfig.strategy, fixedIntervalMs = pollConfig.fixedIntervalMs, minIntervalMs = pollConfig.minIntervalMs, maxIntervalMs = pollConfig.maxIntervalMs, backoffType = pollConfig.backoffType, intervalStepMs = pollConfig.intervalStepMs;
+            if (strategy === 'backoff') {
+                if (!_this.pollInterval || messagesRetrievedOnLastPoll) {
+                    return minIntervalMs;
+                }
+                if (backoffType === 'double') {
+                    return Math.min(maxIntervalMs, _this.pollInterval * 2);
+                }
+                return Math.min(maxIntervalMs, _this.pollInterval + intervalStepMs);
+            }
+            return fixedIntervalMs;
+        };
+        this.pollInterval = getNextPollInterval();
+        this.nextPoll = setTimeout(this._poll.bind(this), this.pollInterval);
+        (0, logging_1.logDebug)("Next poll interval: ", this.pollInterval);
+    };
     SQSPoller.prototype._poll = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var processMessages, _i, _a, queue;
+            var processResults, retrievedMessageCount;
             var _this = this;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
-                        processMessages = function (queue) { return __awaiter(_this, void 0, void 0, function () {
-                            var activeHandlers, messageCount, _loop_1, this_1;
-                            var _this = this;
-                            var _a;
+                        (0, logging_1.logDebug)("Polling SQS queues..");
+                        return [4 /*yield*/, Promise.all(this.queueDefinitions.map(function (queue) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
+                                return [2 /*return*/, this._processMessages(queue)];
+                            }); }); }))];
+                    case 1:
+                        processResults = _a.sent();
+                        retrievedMessageCount = processResults
+                            .map(function (r) { return r.retrievedMessageCount; })
+                            .reduce(function (acc, v) { return acc + v; }, 0);
+                        (0, logging_1.logDebug)("Finished polling SQS queues");
+                        this._scheduleNextPoll(retrievedMessageCount > 0);
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    SQSPoller.prototype._processMessages = function (queue) {
+        return __awaiter(this, void 0, void 0, function () {
+            var pollConfig, noMessagesResult, processInternal, results;
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        pollConfig = this.config.sqs.pollConfig;
+                        noMessagesResult = { retrievedMessageCount: 0, successMessageCount: 0, failedMessageCount: 0 };
+                        processInternal = function () { return __awaiter(_this, void 0, void 0, function () {
+                            var response, messages, messageCount, invocationResult, successMessages, successMessageIds, failedMessages, failedMessageIds, results_1, _a;
                             return __generator(this, function (_b) {
                                 switch (_b.label) {
-                                    case 0:
-                                        activeHandlers = [];
-                                        messageCount = 0;
-                                        _loop_1 = function () {
-                                            var response, messageCount_1, event_1;
-                                            return __generator(this, function (_c) {
-                                                switch (_c.label) {
-                                                    case 0: return [4 /*yield*/, this_1.sqsClient.send(new client_sqs_1.ReceiveMessageCommand({
-                                                            QueueUrl: queue.queueUrl
-                                                        }))];
-                                                    case 1:
-                                                        response = _c.sent();
-                                                        messageCount_1 = ((_a = response.Messages) === null || _a === void 0 ? void 0 : _a.length) || 0;
-                                                        if (messageCount_1 > 0) {
-                                                            (0, logging_1.log)("Retrieved ".concat(messageCount_1, " messages for '").concat(queue.name));
-                                                            event_1 = {
-                                                                Records: response.Messages.map(function (message) { return ({
-                                                                    messageId: message.MessageId,
-                                                                    receiptHandle: message.ReceiptHandle,
-                                                                    body: message.Body,
-                                                                    attributes: message.Attributes,
-                                                                    messageAttributes: message.MessageAttributes,
-                                                                    md5OfBody: message.MD5OfBody,
-                                                                    eventSource: "aws:sqs",
-                                                                    eventSourceARN: queue.queueArn,
-                                                                    awsRegion: _this.options.region
-                                                                }); })
-                                                            };
-                                                            (0, logging_1.logDebug)("lambda event input", JSON.stringify(event_1));
-                                                            queue.handlerFunctions.forEach(function (handlerFunction) {
-                                                                (0, logging_1.logDebug)("lambda name", handlerFunction);
-                                                                var lambdaFunction = _this.lambda.get(handlerFunction);
-                                                                (0, logging_1.logDebug)("lambda definition", JSON.stringify(lambdaFunction));
-                                                                lambdaFunction.setEvent(event_1);
-                                                                activeHandlers.push(lambdaFunction.runHandler());
-                                                            });
-                                                        }
-                                                        else {
-                                                            (0, logging_1.logDebug)("No messages for '".concat(queue.name));
-                                                        }
-                                                        return [2 /*return*/];
-                                                }
-                                            });
-                                        };
-                                        this_1 = this;
-                                        _b.label = 1;
-                                    case 1: return [5 /*yield**/, _loop_1()];
+                                    case 0: return [4 /*yield*/, this.sqsClient.send(new client_sqs_1.ReceiveMessageCommand({
+                                            QueueUrl: queue.queueUrl,
+                                            MaxNumberOfMessages: 10
+                                        }))];
+                                    case 1:
+                                        response = _b.sent();
+                                        messages = response.Messages;
+                                        messageCount = (messages === null || messages === void 0 ? void 0 : messages.length) || 0;
+                                        if (!(messageCount > 0)) return [3 /*break*/, 8];
+                                        (0, logging_1.logDebug)("Retrieved ".concat(messageCount, " messages for '").concat(queue.name));
+                                        return [4 /*yield*/, this._invokeHandlersForQueue(queue, messages)];
                                     case 2:
-                                        _b.sent();
-                                        _b.label = 3;
+                                        invocationResult = _b.sent();
+                                        successMessages = invocationResult.successMessages, successMessageIds = invocationResult.successMessageIds, failedMessages = invocationResult.failedMessages, failedMessageIds = invocationResult.failedMessageIds;
+                                        if (!(successMessages.length > 0)) return [3 /*break*/, 4];
+                                        (0, logging_1.logDebug)("Successfully handled message Ids: ".concat(setToString(successMessageIds)));
+                                        (0, logging_1.logDebug)("Removing successfully handled messages from queue..");
+                                        return [4 /*yield*/, this.sqsClient.send(new client_sqs_1.DeleteMessageBatchCommand({
+                                                QueueUrl: queue.queueUrl,
+                                                Entries: successMessages.map(function (m) { return ({ Id: m.MessageId, ReceiptHandle: m.ReceiptHandle }); })
+                                            }))];
                                     case 3:
-                                        if (messageCount > 0) return [3 /*break*/, 1];
+                                        _b.sent();
                                         _b.label = 4;
-                                    case 4: return [2 /*return*/, Promise.all(activeHandlers)];
+                                    case 4:
+                                        if (failedMessages.length > 0) {
+                                            (0, logging_1.logDebug)("Failed to handle message Ids: ".concat(setToString(failedMessageIds)));
+                                        }
+                                        if (!pollConfig.drainQueues) return [3 /*break*/, 6];
+                                        return [4 /*yield*/, processInternal()];
+                                    case 5:
+                                        _a = _b.sent();
+                                        return [3 /*break*/, 7];
+                                    case 6:
+                                        _a = noMessagesResult;
+                                        _b.label = 7;
+                                    case 7:
+                                        results_1 = _a;
+                                        return [2 /*return*/, {
+                                                retrievedMessageCount: messages.length + results_1.retrievedMessageCount,
+                                                successMessageCount: successMessages.length + results_1.successMessageCount,
+                                                failedMessageCount: failedMessages.length + results_1.failedMessageCount
+                                            }];
+                                    case 8: return [2 /*return*/, noMessagesResult];
                                 }
                             });
                         }); };
-                        (0, logging_1.logDebug)("Polling SQS queues..");
-                        _i = 0, _a = this.queueDefinitions;
-                        _b.label = 1;
+                        return [4 /*yield*/, processInternal()];
                     case 1:
-                        if (!(_i < _a.length)) return [3 /*break*/, 4];
-                        queue = _a[_i];
-                        (0, logging_1.logDebug)("Polling SQS queue: '".concat(queue.name, "'"));
-                        return [4 /*yield*/, processMessages(queue)];
-                    case 2:
-                        _b.sent();
-                        _b.label = 3;
-                    case 3:
-                        _i++;
-                        return [3 /*break*/, 1];
-                    case 4:
-                        (0, logging_1.logDebug)("Finished polling SQS queues");
-                        return [2 /*return*/];
+                        results = _a.sent();
+                        if (results.retrievedMessageCount === 0) {
+                            (0, logging_1.logDebug)("No messages for '".concat(queue.name));
+                        }
+                        return [2 /*return*/, results];
+                }
+            });
+        });
+    };
+    SQSPoller.prototype._invokeHandlersForQueue = function (queue, messages) {
+        return __awaiter(this, void 0, void 0, function () {
+            var invokeHandler, event, handlerResults, failedMessageIds, failedMessages, successMessages, successMessageIds;
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        invokeHandler = function (handlerName, event) {
+                            (0, logging_1.logDebug)("Invoking handler: '".concat(handlerName, "'"));
+                            var lambdaFunction = _this.lambda.get(handlerName);
+                            lambdaFunction.setEvent(event);
+                            return lambdaFunction.runHandler();
+                        };
+                        event = {
+                            Records: messages.map(function (m) { return ({
+                                messageId: m.MessageId,
+                                receiptHandle: m.ReceiptHandle,
+                                body: m.Body,
+                                attributes: m.Attributes,
+                                messageAttributes: m.MessageAttributes,
+                                md5OfBody: m.MD5OfBody,
+                                eventSource: "aws:sqs",
+                                eventSourceARN: queue.queueArn,
+                                awsRegion: _this.options.region
+                            }); })
+                        };
+                        (0, logging_1.logDebug)("Using event: ", event);
+                        return [4 /*yield*/, Promise.all(queue.handlerFunctions.map(function (handlerName) { return invokeHandler(handlerName, event); }))];
+                    case 1:
+                        handlerResults = _a.sent();
+                        failedMessageIds = new Set(handlerResults.map(function (r) {
+                            return r.batchItemFailures.map(function (f) { return f.itemIdentifier; });
+                        }).flat());
+                        failedMessages = messages.filter(function (m) { return failedMessageIds.has(m.MessageId); });
+                        successMessages = messages.filter(function (m) { return !failedMessageIds.has(m.MessageId); });
+                        successMessageIds = new Set(successMessages.map(function (v) { return v.MessageId; }));
+                        return [2 /*return*/, { failedMessageIds: failedMessageIds, failedMessages: failedMessages, successMessageIds: successMessageIds, successMessages: successMessages }];
                 }
             });
         });
@@ -152,3 +220,4 @@ var SQSPoller = /** @class */ (function () {
     return SQSPoller;
 }());
 exports["default"] = SQSPoller;
+var setToString = function (s) { return "[".concat(Array.from(s).join(', '), "]"); };

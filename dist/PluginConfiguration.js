@@ -1,7 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.getDefaultPluginConfiguration = void 0;
-var constants_1 = require("./constants");
+exports.validateConfig = exports.getDefaultPluginConfiguration = void 0;
 var getDefaultPluginConfiguration = function () { return ({
     dynamodb: {
         enabled: false
@@ -11,9 +10,27 @@ var getDefaultPluginConfiguration = function () { return ({
         createQueuesFromResources: true,
         removeExistingQueuesOnStart: true,
         purgeExistingQueuesOnStart: false,
-        pollInterval: constants_1.DEFAULT_SQS_POLL_INTERVAL_MS,
         queueNames: {},
-        additionalQueues: []
+        additionalQueues: [],
+        pollConfig: {
+            strategy: 'backoff',
+            drainQueues: false,
+            messageBatchSize: 10,
+            backoffType: 'double',
+            minIntervalMs: 100,
+            maxIntervalMs: 5000
+        }
     }
 }); };
 exports.getDefaultPluginConfiguration = getDefaultPluginConfiguration;
+var validateConfig = function (config) {
+    var pollConfig = config.sqs.pollConfig;
+    if (!new Set(['fixed-inteval', 'backoff']).has(pollConfig.strategy)) {
+        throw Error("Unknown polling strategy: '".concat(pollConfig.strategy));
+    }
+    if (!new Set(['double', 'step']).has(pollConfig.backoffType)) {
+        throw Error("Unknown polling backoffType: '".concat(pollConfig.backoffType));
+    }
+    return config;
+};
+exports.validateConfig = validateConfig;
