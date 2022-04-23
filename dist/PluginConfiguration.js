@@ -10,8 +10,9 @@ var getDefaultPluginConfiguration = function () { return ({
         createQueuesFromResources: true,
         removeExistingQueuesOnStart: true,
         purgeExistingQueuesOnStart: false,
+        errorOnMissingQueueDefinition: true,
         queueNames: {},
-        additionalQueues: [],
+        queues: [],
         pollConfig: {
             strategy: 'backoff',
             drainQueues: false,

@@ -1,18 +1,17 @@
 "use strict";
 exports.__esModule = true;
-exports.keyMerge = exports.extractResourceNameFromArn = exports.getHandlersAsLambdaFunctionDefinitions = exports.getPluginConfiguration = void 0;
+exports.foldLeft = exports.tail = exports.head = exports.keyMerge = exports.extractResourceNameFromArn = exports.getHandlersAsLambdaFunctionDefinitions = exports.getPluginConfiguration = void 0;
 var constants_1 = require("./constants");
 var logging_1 = require("./logging");
 var getPluginConfiguration = function (serverless) { return serverless.service.custom[constants_1.SLS_CUSTOM_OPTION]; };
 exports.getPluginConfiguration = getPluginConfiguration;
 var getHandlersAsLambdaFunctionDefinitions = function (serverless) {
-    var toFunctionDef = function (functionKey) { return ({
-        functionKey: functionKey,
-        functionDefinition: service.getFunction(functionKey)
-    }); };
     var service = serverless.service;
     return service.getAllFunctions()
-        .map(toFunctionDef);
+        .map(function (functionKey) { return ({
+        functionKey: functionKey,
+        functionDefinition: service.getFunction(functionKey)
+    }); });
 };
 exports.getHandlersAsLambdaFunctionDefinitions = getHandlersAsLambdaFunctionDefinitions;
 var extractResourceNameFromArn = function (arnExtract, getNameFromResources, resourceNameMappingPath, getNameFromMappings) { return function (arn) {
@@ -65,3 +64,16 @@ var keyMerge = function (getKey, merge) { return function (data) {
     }, {})).map(function (entry) { return entry[1]; });
 }; };
 exports.keyMerge = keyMerge;
+var head = function (v) { return v[0]; };
+exports.head = head;
+var tail = function (v) { return (v.length > 0 ? v.slice(1) : []); };
+exports.tail = tail;
+var foldLeft = function (initial, vals, f) {
+    var foldInternal = function (a, b, bs) {
+        return b //
+            ? foldInternal(f(a, b), (0, exports.head)(bs), (0, exports.tail)(bs))
+            : a;
+    };
+    return foldInternal(initial, (0, exports.head)(vals), (0, exports.tail)(vals));
+};
+exports.foldLeft = foldLeft;

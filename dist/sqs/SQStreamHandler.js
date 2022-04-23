@@ -45,9 +45,9 @@ var StreamFunctionDefinitions_1 = require("../StreamFunctionDefinitions");
 var utils_1 = require("./utils");
 var getQueuesToCreate_1 = require("./functions/getQueuesToCreate");
 var setupQueues_1 = require("./functions/setupQueues");
-var getFunctionQueueDefinitions_1 = require("./functions/getFunctionQueueDefinitions");
 var utils_2 = require("../utils");
-var getAdditionalQueueDefinitions_1 = require("./functions/getAdditionalQueueDefinitions");
+var getConfigQueueDefinitions_1 = require("./functions/getConfigQueueDefinitions");
+var bindHandlersToQueues_1 = require("./functions/bindHandlersToQueues");
 var SQStreamHandler = /** @class */ (function () {
     function SQStreamHandler(serverless, options, config) {
         this.serverless = serverless;
@@ -55,43 +55,34 @@ var SQStreamHandler = /** @class */ (function () {
         this.config = config;
     }
     SQStreamHandler.prototype.start = function () {
-        var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var service, _b, resources, functionsWithSqsEvents, resourceQueueDefinitions, functionQueueDefinitions, additionalQueueDefinitions, queuesToCreate, activeQueueDefinitions, queuesWithFunctionEventHandler, queuesToPoll;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var resources, _a, resourceQueueDefinitions, configQueueDefinitions, queuesToCreate, activeQueues, functionsWithSqsEvents, boundQueues;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
+                        resources = this.serverless.resources;
                         (0, logging_1.log)("Starting Offline SQS Streams: ".concat(this.options.stage, "/").concat(this.options.region, ".."));
-                        service = this.serverless.service;
-                        _b = this;
-                        return [4 /*yield*/, this._createSQSClient()
-                            // TODO: create all lambdas at plugin level and push them down into the handlers. DynamoDbStream Handler has a
-                            //  better implementation to create only lambdas with stream events
-                        ];
+                        _a = this;
+                        return [4 /*yield*/, this._createSQSClient()];
                     case 1:
-                        _b.sqsClient = _c.sent();
-                        // TODO: create all lambdas at plugin level and push them down into the handlers. DynamoDbStream Handler has a
-                        //  better implementation to create only lambdas with stream events
+                        _a.sqsClient = _b.sent();
                         this.slsOfflineLambda = new lambda_1["default"](this.serverless, this.options);
                         this.slsOfflineLambda.create((0, utils_2.getHandlersAsLambdaFunctionDefinitions)(this.serverless));
-                        resources = (_a = this.serverless.resources) === null || _a === void 0 ? void 0 : _a.Resources;
-                        functionsWithSqsEvents = (0, StreamFunctionDefinitions_1.getFunctionDefinitionsWithStreamsEvents)(this.serverless, 'SQS');
-                        resourceQueueDefinitions = (0, utils_1.getQueueDefinitionsFromResources)(this.serverless);
+                        resourceQueueDefinitions = (0, utils_1.getQueueDefinitionsFromResources)(resources);
                         (0, logging_1.logDebug)("resourceQueueDefinitions", resourceQueueDefinitions);
-                        functionQueueDefinitions = (0, getFunctionQueueDefinitions_1["default"])(this.config, resources)(functionsWithSqsEvents);
-                        (0, logging_1.logDebug)("functionQueueDefinitions", functionQueueDefinitions);
-                        additionalQueueDefinitions = (0, getAdditionalQueueDefinitions_1["default"])(this.config);
-                        (0, logging_1.logDebug)("additionalQueueDefinitions", additionalQueueDefinitions);
-                        queuesToCreate = (0, getQueuesToCreate_1["default"])(this.config)(resourceQueueDefinitions, functionQueueDefinitions, additionalQueueDefinitions);
+                        configQueueDefinitions = (0, getConfigQueueDefinitions_1["default"])(this.config);
+                        (0, logging_1.logDebug)("configQueueDefinitions", configQueueDefinitions);
+                        queuesToCreate = (0, getQueuesToCreate_1["default"])(this.config)(resourceQueueDefinitions, configQueueDefinitions);
                         (0, logging_1.logDebug)("queuesToCreate", queuesToCreate);
                         return [4 /*yield*/, (0, setupQueues_1["default"])(this.config, this.sqsClient)(queuesToCreate)];
                     case 2:
-                        activeQueueDefinitions = _c.sent();
-                        (0, logging_1.logDebug)("activeQueueDefinitions", activeQueueDefinitions);
-                        queuesWithFunctionEventHandler = new Set(functionQueueDefinitions.map(function (queue) { return queue.name; }));
-                        queuesToPoll = activeQueueDefinitions.filter(function (queue) { return queuesWithFunctionEventHandler.has(queue.name); });
-                        (0, logging_1.logDebug)("queuesToPoll", queuesToPoll);
-                        this.sqsPoller = new SQSPoller_1["default"](this.options, this.config, queuesToPoll, this.sqsClient, this.slsOfflineLambda);
+                        activeQueues = _b.sent();
+                        (0, logging_1.logDebug)("activeQueues", activeQueues);
+                        functionsWithSqsEvents = (0, StreamFunctionDefinitions_1.getFunctionDefinitionsWithStreamsEvents)(this.serverless, 'SQS');
+                        boundQueues = (0, bindHandlersToQueues_1["default"])(this.config, resources, activeQueues, functionsWithSqsEvents);
+                        (0, logging_1.logDebug)("boundQueues", boundQueues);
+                        // Start polling for bound queues
+                        this.sqsPoller = new SQSPoller_1["default"](this.options, this.config, boundQueues, this.sqsClient, this.slsOfflineLambda);
                         this.sqsPoller.start();
                         (0, logging_1.log)("Started Offline SQS Streams. ");
                         return [2 /*return*/];
@@ -101,17 +92,12 @@ var SQStreamHandler = /** @class */ (function () {
     };
     SQStreamHandler.prototype.shutdown = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var cleanupPromises;
             return __generator(this, function (_a) {
                 (0, logging_1.log)("Halting Offline SQS Streams..");
-                cleanupPromises = [];
-                if (this.slsOfflineLambda) {
-                    cleanupPromises.push(this.slsOfflineLambda.cleanup());
-                }
-                if (this.sqsPoller) {
-                    cleanupPromises.push(this.sqsPoller.stop());
-                }
-                return [2 /*return*/, Promise.all(cleanupPromises)];
+                return [2 /*return*/, Promise.all([
+                        this.slsOfflineLambda ? this.slsOfflineLambda.cleanup() : Promise.resolve(),
+                        this.sqsPoller ? this.sqsPoller.stop() : Promise.resolve()
+                    ])];
             });
         });
     };

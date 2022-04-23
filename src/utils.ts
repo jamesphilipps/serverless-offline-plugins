@@ -9,13 +9,12 @@ export type StringKeyObject<T> = { [key: string]: T }
 export const getPluginConfiguration = (serverless: Serverless): PluginConfiguration | undefined => serverless.service.custom[SLS_CUSTOM_OPTION]
 
 export const getHandlersAsLambdaFunctionDefinitions = (serverless: Serverless) => {
-    const toFunctionDef = (functionKey: string): SlsOfflineLambdaFunctionDefinition => ({
-        functionKey,
-        functionDefinition: service.getFunction(functionKey)
-    })
     const {service} = serverless
     return service.getAllFunctions()
-        .map(toFunctionDef)
+        .map((functionKey: string): SlsOfflineLambdaFunctionDefinition => ({
+            functionKey,
+            functionDefinition: service.getFunction(functionKey)
+        }))
 }
 
 export const extractResourceNameFromArn = (
@@ -78,4 +77,18 @@ export const keyMerge = <T>(
                 return merge(acc, v)
             }, {})
     ).map(entry => entry[1])
+}
+
+
+export const head = <T>(v: T[]) => v[0]
+
+export const tail = <T>(v: T[]) => (v.length > 0 ? v.slice(1) : [])
+
+export const foldLeft = <A, B>(initial: A, vals: B[], f: (acc: A, val: B) => A) :A=> {
+    const foldInternal = (a: A, b: B, bs: B[]): A => {
+        return b //
+            ? foldInternal(f(a, b), head(bs), tail(bs))
+            : a
+    }
+    return foldInternal(initial, head(vals), tail(vals))
 }

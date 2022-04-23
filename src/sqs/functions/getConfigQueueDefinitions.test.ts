@@ -1,19 +1,19 @@
-import PluginConfiguration, {AdditionalQueue} from "../../PluginConfiguration";
-import getAdditionalQueueDefinitions from "./getAdditionalQueueDefinitions";
+import PluginConfiguration, {ConfigurationQueueDef} from "../../PluginConfiguration";
+import getConfigQueueDefinitions from "./getConfigQueueDefinitions";
 
 
-describe('getAdditionalQueueDefinitions', () => {
-    const func = getAdditionalQueueDefinitions
+describe('getConfigQueueDefinitions', () => {
+    const func = getConfigQueueDefinitions
 
     it('parses queues correctly from additional queues', () => {
-        const additionalQueues: AdditionalQueue[] = [
+        const queues: ConfigurationQueueDef[] = [
             {name: 'queue1'},
-            {name: 'queue2'},
+            {name: 'queue2', visibilityTimeout: 10, delaySeconds:7},
             {name: 'queue2'},
             {name: 'queue3.fifo'},
         ]
 
-        const config: PluginConfiguration = {sqs: {additionalQueues}}
+        const config: PluginConfiguration = {sqs: {queues}}
         const queueDefs = func(config)
         expect(queueDefs.length).toBe(3)
 
@@ -28,8 +28,8 @@ describe('getAdditionalQueueDefinitions', () => {
         expect(queueDefs[1].fifo).toBeFalsy()
         expect(queueDefs[1].handlerFunctions).toEqual([])
         expect(queueDefs[1].resourceKey).toBeUndefined()
-        expect(queueDefs[1].delaySeconds).toBeUndefined()
-        expect(queueDefs[1].visibilityTimeout).toBeUndefined()
+        expect(queueDefs[1].delaySeconds).toEqual(7)
+        expect(queueDefs[1].visibilityTimeout).toEqual(10)
 
         expect(queueDefs[2].name).toBe('queue3.fifo')
         expect(queueDefs[2].fifo).toBeTruthy()

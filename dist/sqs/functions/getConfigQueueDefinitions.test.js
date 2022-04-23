@@ -1,16 +1,16 @@
 "use strict";
 exports.__esModule = true;
-var getAdditionalQueueDefinitions_1 = require("./getAdditionalQueueDefinitions");
-describe('getAdditionalQueueDefinitions', function () {
-    var func = getAdditionalQueueDefinitions_1["default"];
+var getConfigQueueDefinitions_1 = require("./getConfigQueueDefinitions");
+describe('getConfigQueueDefinitions', function () {
+    var func = getConfigQueueDefinitions_1["default"];
     it('parses queues correctly from additional queues', function () {
-        var additionalQueues = [
+        var queues = [
             { name: 'queue1' },
             { name: 'queue2', visibilityTimeout: 10, delaySeconds: 7 },
             { name: 'queue2' },
             { name: 'queue3.fifo' },
         ];
-        var config = { sqs: { additionalQueues: additionalQueues } };
+        var config = { sqs: { queues: queues } };
         var queueDefs = func(config);
         expect(queueDefs.length).toBe(3);
         expect(queueDefs[0].name).toBe('queue1');

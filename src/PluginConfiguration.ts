@@ -1,8 +1,10 @@
 import {DEFAULT_SQS_POLL_INTERVAL_MS} from "./constants";
 import {StringKeyObject} from "./utils";
 
-export interface AdditionalQueue {
+export interface ConfigurationQueueDef {
     name: string
+    visibilityTimeout?: number
+    delaySeconds?: number
 }
 
 export interface PluginConfiguration {
@@ -16,8 +18,9 @@ export interface PluginConfiguration {
         createQueuesFromResources?: boolean
         removeExistingQueuesOnStart?: boolean
         purgeExistingQueuesOnStart?: boolean
+        errorOnMissingQueueDefinition?: boolean
         queueNames?: StringKeyObject<string>
-        additionalQueues?: AdditionalQueue[]
+        queues?: ConfigurationQueueDef[]
         // pollInterval?: number
 
         pollConfig?: {
@@ -48,8 +51,9 @@ export const getDefaultPluginConfiguration = (): PluginConfiguration => ({
         createQueuesFromResources: true,
         removeExistingQueuesOnStart: true,
         purgeExistingQueuesOnStart: false,
+        errorOnMissingQueueDefinition: true,
         queueNames: {},
-        additionalQueues: [],
+        queues: [],
         pollConfig: {
             strategy: 'backoff',
             drainQueues: false,

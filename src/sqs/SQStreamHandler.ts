@@ -9,9 +9,9 @@ import {getQueueDefinitionsFromResources} from "./utils";
 import getQueuesToCreate from "./functions/getQueuesToCreate";
 import setupQueues from "./functions/setupQueues";
 import PluginConfiguration from "../PluginConfiguration";
-import getFunctionQueueDefinitions from "./functions/getFunctionQueueDefinitions";
 import {getHandlersAsLambdaFunctionDefinitions, StringKeyObject} from "../utils";
-import getAdditionalQueueDefinitions from "./functions/getAdditionalQueueDefinitions";
+import getConfigQueueDefinitions from "./functions/getConfigQueueDefinitions";
+import bindHandlersToQueues from "./functions/bindHandlersToQueues";
 
 
 export class SQStreamHandler implements StreamHandler {
@@ -23,37 +23,38 @@ export class SQStreamHandler implements StreamHandler {
     }
 
     async start() {
+        const {resources} = this.serverless
+
         log(`Starting Offline SQS Streams: ${this.options.stage}/${this.options.region}..`)
-        const {service} = this.serverless
         this.sqsClient = await this._createSQSClient()
 
-        // TODO: create all lambdas at plugin level and push them down into the handlers. DynamoDbStream Handler has a
-        //  better implementation to create only lambdas with stream events
         this.slsOfflineLambda = new Lambda(this.serverless, this.options)
         this.slsOfflineLambda.create(getHandlersAsLambdaFunctionDefinitions(this.serverless))
 
-        const resources = this.serverless.resources?.Resources
-
-        const functionsWithSqsEvents = getFunctionDefinitionsWithStreamsEvents(this.serverless, 'SQS')
-
-        const resourceQueueDefinitions = getQueueDefinitionsFromResources(this.serverless)
+        // Load queue definitions from defined resources
+        const resourceQueueDefinitions = getQueueDefinitionsFromResources(resources)
         logDebug("resourceQueueDefinitions", resourceQueueDefinitions)
-        const functionQueueDefinitions = getFunctionQueueDefinitions(this.config, resources)(functionsWithSqsEvents)
-        logDebug("functionQueueDefinitions", functionQueueDefinitions)
-        const additionalQueueDefinitions = getAdditionalQueueDefinitions(this.config)
-        logDebug("additionalQueueDefinitions", additionalQueueDefinitions)
 
-        const queuesToCreate = getQueuesToCreate(this.config)(resourceQueueDefinitions, functionQueueDefinitions, additionalQueueDefinitions)
+        // Load queue definitions from plugin configuration
+        const configQueueDefinitions = getConfigQueueDefinitions(this.config)
+        logDebug("configQueueDefinitions", configQueueDefinitions)
+
+        // Filter any queues that should not be created (either because the plugin is set to not create resource
+        // definitions, or a queue is marked as create=false
+        const queuesToCreate = getQueuesToCreate(this.config)(resourceQueueDefinitions, configQueueDefinitions)
         logDebug("queuesToCreate", queuesToCreate)
-        const activeQueueDefinitions = await setupQueues(this.config, this.sqsClient)(queuesToCreate)
-        logDebug("activeQueueDefinitions", activeQueueDefinitions)
 
-        const queuesWithFunctionEventHandler = new Set(functionQueueDefinitions.map((queue) => queue.name))
-        const queuesToPoll = activeQueueDefinitions.filter((queue) => queuesWithFunctionEventHandler.has(queue.name))
-        logDebug("queuesToPoll", queuesToPoll)
+        // Activate the queues by removing, creating and purging as required
+        const activeQueues = await setupQueues(this.config, this.sqsClient)(queuesToCreate)
+        logDebug("activeQueues", activeQueues)
 
+        // Bind the queues to event handler mappings
+        const functionsWithSqsEvents = getFunctionDefinitionsWithStreamsEvents(this.serverless, 'SQS')
+        const boundQueues = bindHandlersToQueues(this.config, resources, activeQueues, functionsWithSqsEvents)
+        logDebug("boundQueues", boundQueues)
 
-        this.sqsPoller = new SQSPoller(this.options, this.config, queuesToPoll, this.sqsClient, this.slsOfflineLambda)
+        // Start polling for bound queues
+        this.sqsPoller = new SQSPoller(this.options, this.config, boundQueues, this.sqsClient, this.slsOfflineLambda)
         this.sqsPoller.start()
 
         log(`Started Offline SQS Streams. `)
@@ -61,18 +62,11 @@ export class SQStreamHandler implements StreamHandler {
 
     async shutdown() {
         log("Halting Offline SQS Streams..")
-
-        const cleanupPromises = []
-
-        if (this.slsOfflineLambda) {
-            cleanupPromises.push(this.slsOfflineLambda.cleanup())
-        }
-
-        if (this.sqsPoller) {
-            cleanupPromises.push(this.sqsPoller.stop())
-        }
-
-        return Promise.all(cleanupPromises)
+        return Promise.all([
+                this.slsOfflineLambda ? this.slsOfflineLambda.cleanup() : Promise.resolve(),
+                this.sqsPoller ? this.sqsPoller.stop() : Promise.resolve()
+            ]
+        )
     }
 
     async _createSQSClient(): Promise<SQSClient> {

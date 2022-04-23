@@ -5,6 +5,7 @@ export interface QueueDef {
     visibilityTimeout?: number
     delaySeconds?: number
     handlerFunctions: string[]
+    create?: boolean
 }
 
 export interface ActiveQueueDef extends QueueDef {
