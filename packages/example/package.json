@@ -1,7 +1,7 @@
 {
   "name": "serverless-offline-streams-example",
   "version": "1.0.1",
-  "main": "../../dist/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "compile": "tsc --build",
     "compile:watch": "tsc --build -w",

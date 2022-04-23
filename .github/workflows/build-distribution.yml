@@ -29,12 +29,14 @@ jobs:
           registry-url: 'https://npm.pkg.github.com'
 
       - name: Clean install dependencies
-        run: npm ci
+        run: yarn install
 
       - name: Clean Dist Dir
+        working-directory: ./packages/plugin
         run: rm -rf dist
 
       - name: Compile
+        working-directory: ./packages/plugin
         run: tsc --build
 
       - name: Commit
