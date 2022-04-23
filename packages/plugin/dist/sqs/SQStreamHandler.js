@@ -55,17 +55,18 @@ var SQStreamHandler = /** @class */ (function () {
         this.config = config;
     }
     SQStreamHandler.prototype.start = function () {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function () {
-            var resources, _a, resourceQueueDefinitions, configQueueDefinitions, queuesToCreate, activeQueues, functionsWithSqsEvents, boundQueues;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var resources, _c, resourceQueueDefinitions, configQueueDefinitions, queuesToCreate, activeQueues, functionsWithSqsEvents, boundQueues;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
-                        resources = this.serverless.resources;
+                        resources = (_b = (_a = this.serverless.service) === null || _a === void 0 ? void 0 : _a.resources) === null || _b === void 0 ? void 0 : _b.Resources;
                         (0, logging_1.log)("Starting Offline SQS Streams: ".concat(this.options.stage, "/").concat(this.options.region, ".."));
-                        _a = this;
+                        _c = this;
                         return [4 /*yield*/, this._createSQSClient()];
                     case 1:
-                        _a.sqsClient = _b.sent();
+                        _c.sqsClient = _d.sent();
                         this.slsOfflineLambda = new lambda_1["default"](this.serverless, this.options);
                         this.slsOfflineLambda.create((0, utils_2.getHandlersAsLambdaFunctionDefinitions)(this.serverless));
                         resourceQueueDefinitions = (0, utils_1.getQueueDefinitionsFromResources)(resources);
@@ -76,7 +77,7 @@ var SQStreamHandler = /** @class */ (function () {
                         (0, logging_1.logDebug)("queuesToCreate", queuesToCreate);
                         return [4 /*yield*/, (0, setupQueues_1["default"])(this.config, this.sqsClient)(queuesToCreate)];
                     case 2:
-                        activeQueues = _b.sent();
+                        activeQueues = _d.sent();
                         (0, logging_1.logDebug)("activeQueues", activeQueues);
                         functionsWithSqsEvents = (0, StreamFunctionDefinitions_1.getFunctionDefinitionsWithStreamsEvents)(this.serverless, 'SQS');
                         boundQueues = (0, bindHandlersToQueues_1["default"])(this.config, resources, activeQueues, functionsWithSqsEvents);

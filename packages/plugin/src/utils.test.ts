@@ -42,6 +42,14 @@ describe('utils', () => {
             expect(func(['k3', 'ARN'])).toEqual('RES3')
             expect(func(['k4', 'ARN'])).toEqual('RES4')
         })
+        it('extracts name from Fn::GetAtt reference using provided function', () => {
+            expect(func({'Fn::GetAtt': ['k3', 'ARN']})).toEqual('RES3')
+            expect(func({'Fn::GetAtt': ['k4', 'ARN']})).toEqual('RES4')
+        })
+        it('extracts name from Fn::Ref reference using provided function', () => {
+            expect(func({'Fn::Ref': 'k3'})).toEqual('RES3')
+            expect(func({'Fn::Ref': 'k4'})).toEqual('RES4')
+        })
         it('throws meaningful error if cannot find resource ARN', () => {
             expect(() => func(['k7', 'ARN'])).toThrow("No resource defined with key: 'k7'. Add a resource with this key")
         })

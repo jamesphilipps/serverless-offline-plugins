@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.foldLeft = exports.tail = exports.head = exports.keyMerge = exports.extractResourceNameFromArn = exports.getHandlersAsLambdaFunctionDefinitions = exports.getPluginConfiguration = void 0;
+exports.keyMerge = exports.extractResourceNameFromArn = exports.getHandlersAsLambdaFunctionDefinitions = exports.getPluginConfiguration = void 0;
 var constants_1 = require("./constants");
 var logging_1 = require("./logging");
 var getPluginConfiguration = function (serverless) { return serverless.service.custom[constants_1.SLS_CUSTOM_OPTION]; };
@@ -28,14 +28,9 @@ var extractResourceNameFromArn = function (arnExtract, getNameFromResources, res
     var arnStr = typeof arn == 'string' ? arn : JSON.stringify(arn);
     (0, logging_1.logDebug)("extractResourceNameFromArn: '".concat(arnStr, "'"));
     if (typeof arn === 'string') {
-        if (arn.startsWith("arn:")) {
-            // AWS Arn. Parse the resource name from the string
-            return arnExtract(arn.split(":"));
-        }
-        else {
-            // Probably an output reference. Use directly as a key to the defined mappings
-            return getNameFromMappingsOrError(getNameFromMappings(arn));
-        }
+        // If arn starts with arn: then this is an AWS Arn and can be parsed. Otherwise, it is probably an output
+        // reference and can be used directly
+        return arn.startsWith("arn:") ? arnExtract(arn.split(":")) : arn;
     }
     else if (Array.isArray(arn)) {
         if (arn.length === 2) {
@@ -47,8 +42,18 @@ var extractResourceNameFromArn = function (arnExtract, getNameFromResources, res
     else if (typeof arn === 'object') {
         // A function reference. Use the value as a key to the defined mappings
         var keys = Object.keys(arn);
-        if (keys.length === 1 && keys[0].trim() === "Fn::ImportValue") {
-            return getNameFromMappingsOrError(getNameFromMappings(arn[keys[0]]));
+        if (keys.length === 1) {
+            var key = keys[0].trim();
+            switch (key) {
+                case "Fn::GetAtt":
+                    var getAttResourceName = getNameFromResources(arn[key][0]);
+                    return getNameFromResourcesOrError(getAttResourceName);
+                case "Ref":
+                    var refResourceName = getNameFromResources(arn[key]);
+                    return getNameFromResourcesOrError(refResourceName);
+                case "Fn::ImportValue":
+                    return arn[key];
+            }
         }
     }
     throw Error("Cannot resolve arn: '".concat(arnStr, "' to a resource name"));
@@ -64,16 +69,3 @@ var keyMerge = function (getKey, merge) { return function (data) {
     }, {})).map(function (entry) { return entry[1]; });
 }; };
 exports.keyMerge = keyMerge;
-var head = function (v) { return v[0]; };
-exports.head = head;
-var tail = function (v) { return (v.length > 0 ? v.slice(1) : []); };
-exports.tail = tail;
-var foldLeft = function (initial, vals, f) {
-    var foldInternal = function (a, b, bs) {
-        return b //
-            ? foldInternal(f(a, b), (0, exports.head)(bs), (0, exports.tail)(bs))
-            : a;
-    };
-    return foldInternal(initial, (0, exports.head)(vals), (0, exports.tail)(vals));
-};
-exports.foldLeft = foldLeft;

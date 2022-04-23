@@ -23,7 +23,7 @@ export class SQStreamHandler implements StreamHandler {
     }
 
     async start() {
-        const {resources} = this.serverless
+        const resources = this.serverless.service?.resources?.Resources
 
         log(`Starting Offline SQS Streams: ${this.options.stage}/${this.options.region}..`)
         this.sqsClient = await this._createSQSClient()

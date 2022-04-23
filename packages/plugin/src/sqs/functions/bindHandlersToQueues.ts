@@ -7,7 +7,7 @@ import {
     SqsEventMappingDefinition,
     StreamsEventMapping
 } from "../../StreamFunctionDefinitions";
-import {log, LOG_MARKER} from "../../logging";
+import {log, LOG_MARKER, logDebug} from "../../logging";
 import {getQueueNameFromArn} from "../utils";
 
 const bindHandlersToQueues = (
@@ -32,6 +32,10 @@ const bindHandlersToQueues = (
                 const arn = sourceEvent.sqs.arn;
                 const targetQueueName = getQueueNameFromArn(config, resources)(sourceEvent.sqs.arn)
                 const originalQueueDef = queueMap[targetQueueName]
+
+                logDebug(arn)
+                logDebug(targetQueueName)
+                logDebug(queueMap)
 
                 if (originalQueueDef) {
                     return {...originalQueueDef, handlerFunctions: [functionName]} as ActiveQueueDef

@@ -128,4 +128,4 @@ custom:
 ```
 
 # Filter Patterns
-See the [Filter Patterns Guide](src/dynamodb/filterPatterns/README.md)
+See the [Filter Patterns Guide](packages/plugin/src/dynamodb/filterPatterns/README.md)
