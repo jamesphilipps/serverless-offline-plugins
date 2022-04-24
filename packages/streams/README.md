@@ -135,7 +135,7 @@ custom:
 ```
 
 # Filter Patterns
-See the [Filter Patterns Guide](packages/serverless-offline-streams/src/dynamodb/filterPatterns/README.md)
+See the [Filter Patterns Guide](src/dynamodb/filterPatterns/README.md)
 
 
 # Future work:
