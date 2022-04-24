@@ -3,7 +3,7 @@ name: Build Distribution
 on:
   push:
     branches:
-      - 'main'
+      - 'package-test'
 
 jobs:
   compile:
