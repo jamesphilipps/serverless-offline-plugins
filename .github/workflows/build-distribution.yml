@@ -42,7 +42,8 @@ jobs:
     steps:
       - name: Clean streams Dist Dir
         working-directory: packages/streams
-        run: rm -rf dist
+        run: ls
+#        run: rm -rf dist
 
       - name: Clean secrets-manager-simulator Dist Dir
         working-directory: packages/secrets-manager-simulator
