@@ -40,14 +40,18 @@ jobs:
         node-version: [ 14.x ]
 
     steps:
-      - name: Clean serverless-offline-streams Dist Dir
-        working-directory: ./packages/serverless-offline-streams
+      - name: Clean streams Dist Dir
+        working-directory: ./packages/streams
+        run: rm -rf dist
+
+      - name: Clean secrets-manager-simulator Dist Dir
+        working-directory: ./packages/secrets-manager-simulator
         run: rm -rf dist
 
       - name: Compile
         run: tsc --build
 
-  test:
+  test-streams:
     name: Test
     needs: compile
     runs-on: ubuntu-latest
@@ -56,16 +60,13 @@ jobs:
         node-version: [ 14.x ]
 
     steps:
-      - name: Clean serverless-offline-streams Dist Dir
-        working-directory: ./packages/serverless-offline-streams
-        run: rm -rf dist
-
-      - name: Compile
-        run: tsc --build
+      - name: Test
+        working-directory: ./packages/streams
+        run: yarn jest
 
   commit:
     name: Commit
-    needs: test
+    needs: test-streams
     runs-on: ubuntu-latest
     strategy:
       matrix:
