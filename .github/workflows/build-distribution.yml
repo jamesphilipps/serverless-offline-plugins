@@ -72,6 +72,7 @@ jobs:
       matrix:
         node-version: [ 14.x ]
 
+    steps:
       - name: Commit
         continue-on-error: true
         run: |
