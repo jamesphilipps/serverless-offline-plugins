@@ -13,8 +13,6 @@ export const getQueueNameFromArn = (config: PluginConfiguration, resources: Stri
             .filter(queue => queue.resourceKey === key)
             .map(queue => queue.name)
             .find(_ => true),
-        `custom.${SLS_CUSTOM_OPTION}.sqs.queueNames`,
-        (key) => config.sqs?.queueNames?.[key]
     )(arn)
 }
 

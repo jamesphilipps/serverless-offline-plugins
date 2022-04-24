@@ -2,7 +2,6 @@
   "name": "serverless-offline-streams-parent",
   "private": true,
   "version": "1.0.1",
-  "main": "../../dist/index.js",
   "scripts": {
     "compile": "tsc --build",
     "compile:watch": "tsc --build -w"
@@ -11,9 +10,10 @@
     "packages": [
       "packages/*"
     ]
-  },  "devDependencies": {
-  "typescript": "^4.5.5"
-},
+  },
+  "devDependencies": {
+    "typescript": "^4.5.5"
+  },
   "engines": {
     "node": ">=10.0"
   },
