@@ -1,7 +1,7 @@
 {
   "references": [
     {
-      "path": "./packages/plugin"
+      "path": "./packages/serverless-offline-streams"
     },
   ],
   "files": [],

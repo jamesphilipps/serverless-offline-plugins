@@ -1,7 +1,6 @@
 "use strict";
 exports.__esModule = true;
 exports.getQueueDefinitionsFromResources = exports.getQueueNameFromArn = exports.getQueueNameFromArnParts = exports.getQueueNameFromArnString = void 0;
-var constants_1 = require("../constants");
 var utils_1 = require("../utils");
 // TODO: test
 var getQueueNameFromArnString = function (arn) { return (0, exports.getQueueNameFromArnParts)(arn.split(":")); };
@@ -12,7 +11,7 @@ var getQueueNameFromArn = function (config, resources) { return function (arn) {
     return (0, utils_1.extractResourceNameFromArn)(exports.getQueueNameFromArnParts, function (key) { return (0, exports.getQueueDefinitionsFromResources)(resources)
         .filter(function (queue) { return queue.resourceKey === key; })
         .map(function (queue) { return queue.name; })
-        .find(function (_) { return true; }); }, "custom.".concat(constants_1.SLS_CUSTOM_OPTION, ".sqs.queueNames"), function (key) { var _a, _b; return (_b = (_a = config.sqs) === null || _a === void 0 ? void 0 : _a.queueNames) === null || _b === void 0 ? void 0 : _b[key]; })(arn);
+        .find(function (_) { return true; }); })(arn);
 }; };
 exports.getQueueNameFromArn = getQueueNameFromArn;
 var getQueueDefinitionsFromResources = function (resources) {

@@ -20,20 +20,12 @@ export const getHandlersAsLambdaFunctionDefinitions = (serverless: Serverless) =
 export const extractResourceNameFromArn = (
     arnExtract: (parts: string[]) => string,
     getNameFromResources: (key: string) => string,
-    resourceNameMappingPath: string,
-    getNameFromMappings: (key: string) => string
 ) => (arn: any) => {
     const getNameFromResourcesOrError = (resourceName: string) => {
         if (!resourceName)
             throw Error(`No resource defined with key: '${arn[0]}'. Add a resource with this key'`)
         return resourceName
     }
-    const getNameFromMappingsOrError = (resourceName: string) => {
-        if (!resourceName)
-            throw Error(`No resource name mapping for arn: '${arnStr}'. Add a mapping at '${resourceNameMappingPath}'`)
-        return resourceName
-    }
-
 
     const arnStr = typeof arn == 'string' ? arn : JSON.stringify(arn)
     logDebug(`extractResourceNameFromArn: '${arnStr}'`)

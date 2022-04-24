@@ -11,7 +11,6 @@ var getDefaultPluginConfiguration = function () { return ({
         removeExistingQueuesOnStart: true,
         purgeExistingQueuesOnStart: false,
         errorOnMissingQueueDefinition: true,
-        queueNames: {},
         queues: [],
         pollConfig: {
             strategy: 'backoff',

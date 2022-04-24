@@ -19,24 +19,21 @@ describe('utils', () => {
     })
 
     describe('extractResourceNameFromArn', () => {
-        const mappings = {k1: "MAP1", k2: "MAP2"}
         const resources = {k3: {name: "RES3"}, k4: {name: "RES4"}}
         const func = extractResourceNameFromArn(
             parts => parts[2],
             key => resources[key]?.name,
-            'MAPPINGS_PATH',
-            key => mappings[key]
         )
 
         it('extracts name from aws arn using provided function', () => {
             expect(func('arn:aws:MY_RES')).toEqual('MY_RES')
         })
-        it('extracts name from output reference using provided function', () => {
-            expect(func('k1')).toEqual('MAP1')
-            expect(func('k2')).toEqual('MAP2')
+        it('uses non arn string as direct reference', () => {
+            expect(func('k1')).toEqual('k1')
+            expect(func('k2')).toEqual('k2')
         })
         it('extracts name from "Fn::ImportValue" reference using provided function', () => {
-            expect(func({"Fn::ImportValue": 'k1'})).toEqual('MAP1')
+            expect(func({"Fn::ImportValue": 'k1'})).toEqual('k1')
         })
         it('extracts name from resources using provided function', () => {
             expect(func(['k3', 'ARN'])).toEqual('RES3')
@@ -47,14 +44,11 @@ describe('utils', () => {
             expect(func({'Fn::GetAtt': ['k4', 'ARN']})).toEqual('RES4')
         })
         it('extracts name from Fn::Ref reference using provided function', () => {
-            expect(func({'Fn::Ref': 'k3'})).toEqual('RES3')
-            expect(func({'Fn::Ref': 'k4'})).toEqual('RES4')
+            expect(func({'Ref': 'k3'})).toEqual('RES3')
+            expect(func({'Ref': 'k4'})).toEqual('RES4')
         })
         it('throws meaningful error if cannot find resource ARN', () => {
             expect(() => func(['k7', 'ARN'])).toThrow("No resource defined with key: 'k7'. Add a resource with this key")
-        })
-        it('throws meaningful error if cannot find mapping ARN', () => {
-            expect(() => func('k7')).toThrow("No resource name mapping for arn: 'k7'. Add a mapping at 'MAPPINGS_PATH'")
         })
         it('throws meaningful error if cannot detect ARN format from list', () => {
             expect(() => func(['k3'])).toThrow(`Cannot resolve arn: '["k3"]' to a resource name`)

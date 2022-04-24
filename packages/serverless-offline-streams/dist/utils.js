@@ -14,15 +14,10 @@ var getHandlersAsLambdaFunctionDefinitions = function (serverless) {
     }); });
 };
 exports.getHandlersAsLambdaFunctionDefinitions = getHandlersAsLambdaFunctionDefinitions;
-var extractResourceNameFromArn = function (arnExtract, getNameFromResources, resourceNameMappingPath, getNameFromMappings) { return function (arn) {
+var extractResourceNameFromArn = function (arnExtract, getNameFromResources) { return function (arn) {
     var getNameFromResourcesOrError = function (resourceName) {
         if (!resourceName)
             throw Error("No resource defined with key: '".concat(arn[0], "'. Add a resource with this key'"));
-        return resourceName;
-    };
-    var getNameFromMappingsOrError = function (resourceName) {
-        if (!resourceName)
-            throw Error("No resource name mapping for arn: '".concat(arnStr, "'. Add a mapping at '").concat(resourceNameMappingPath, "'"));
         return resourceName;
     };
     var arnStr = typeof arn == 'string' ? arn : JSON.stringify(arn);

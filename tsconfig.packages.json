@@ -20,6 +20,6 @@
   "resolveJsonModule": true,
   "isolatedModules": true,
   "include": [
-    "packages/plugin/src"
+    "packages/serverless-offline-streams/src"
   ]
 }

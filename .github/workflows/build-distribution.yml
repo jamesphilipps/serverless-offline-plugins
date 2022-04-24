@@ -6,8 +6,8 @@ on:
       - 'package-test'
 
 jobs:
-  compile:
-    name: Compile
+  prepare:
+    name: Prepare
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -31,13 +31,45 @@ jobs:
       - name: Clean install dependencies
         run: yarn install
 
-      - name: Clean Dist Dir
-        working-directory: ./packages/plugin
+  compile:
+    name: Compile
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 14.x ]
+
+    steps:
+      - name: Clean serverless-offline-streams Dist Dir
+        working-directory: ./packages/serverless-offline-streams
         run: rm -rf dist
 
       - name: Compile
-        working-directory: ./packages/plugin
         run: tsc --build
+
+  test:
+    name: Test
+    needs: compile
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 14.x ]
+
+    steps:
+      - name: Clean serverless-offline-streams Dist Dir
+        working-directory: ./packages/serverless-offline-streams
+        run: rm -rf dist
+
+      - name: Compile
+        run: tsc --build
+
+  commit:
+    name: Commit
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 14.x ]
 
       - name: Commit
         continue-on-error: true

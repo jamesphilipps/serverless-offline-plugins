@@ -19,9 +19,7 @@ export interface PluginConfiguration {
         removeExistingQueuesOnStart?: boolean
         purgeExistingQueuesOnStart?: boolean
         errorOnMissingQueueDefinition?: boolean
-        queueNames?: StringKeyObject<string>
         queues?: ConfigurationQueueDef[]
-        // pollInterval?: number
 
         pollConfig?: {
             strategy: 'fixed-interval' | 'backoff'
@@ -52,7 +50,6 @@ export const getDefaultPluginConfiguration = (): PluginConfiguration => ({
         removeExistingQueuesOnStart: true,
         purgeExistingQueuesOnStart: false,
         errorOnMissingQueueDefinition: true,
-        queueNames: {},
         queues: [],
         pollConfig: {
             strategy: 'backoff',
