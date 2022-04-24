@@ -9,20 +9,23 @@ jobs:
   prepare:
     name: Prepare
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [ 14.x ]
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Set CI Identity
+      - name: List
         run: |
           git config user.name "GitHub Actions"
           git config user.email "<>"
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Set CI Identity
+        run: |
+          ls
+          echo "HI HI HI"
+          ls packages
+
+      - name: Use Node.js 14.x
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
@@ -35,9 +38,6 @@ jobs:
     name: Compile
     needs: prepare
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [ 14.x ]
 
     steps:
       - name: Clean streams Dist Dir
@@ -55,9 +55,6 @@ jobs:
     name: Test
     needs: compile
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [ 14.x ]
 
     steps:
       - name: Test
@@ -68,9 +65,6 @@ jobs:
     name: Commit
     needs: test-streams
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [ 14.x ]
 
     steps:
       - name: Commit
