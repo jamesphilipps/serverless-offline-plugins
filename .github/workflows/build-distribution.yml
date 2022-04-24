@@ -41,11 +41,11 @@ jobs:
 
     steps:
       - name: Clean streams Dist Dir
-        working-directory: ./packages/streams
+        working-directory: packages/streams
         run: rm -rf dist
 
       - name: Clean secrets-manager-simulator Dist Dir
-        working-directory: ./packages/secrets-manager-simulator
+        working-directory: packages/secrets-manager-simulator
         run: rm -rf dist
 
       - name: Compile
@@ -58,7 +58,7 @@ jobs:
 
     steps:
       - name: Test
-        working-directory: ./packages/streams
+        working-directory: packages/streams
         run: yarn jest
 
   commit:
