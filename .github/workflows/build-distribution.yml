@@ -14,60 +14,35 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: List
+      - name: Set CI Identity
         run: |
           git config user.name "GitHub Actions"
           git config user.email "<>"
 
-      - name: Set CI Identity
-        run: |
-          ls
-          echo "HI HI HI"
-          ls packages
-
       - name: Use Node.js 14.x
         uses: actions/setup-node@v1
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 14.x
           registry-url: 'https://npm.pkg.github.com'
 
       - name: Clean install dependencies
         run: yarn install
 
-  compile:
-    name: Compile
-    needs: prepare
-    runs-on: ubuntu-latest
-
-    steps:
       - name: Clean streams Dist Dir
-        working-directory: packages/streams
-        run: ls
-#        run: rm -rf dist
+        working-directory: ./packages/streams
+        run: rm -rf dist
 
       - name: Clean secrets-manager-simulator Dist Dir
-        working-directory: packages/secrets-manager-simulator
+        working-directory: ./packages/secrets-manager-simulator
         run: rm -rf dist
 
       - name: Compile
         run: tsc --build
 
-  test-streams:
-    name: Test
-    needs: compile
-    runs-on: ubuntu-latest
-
-    steps:
       - name: Test
-        working-directory: packages/streams
+        working-directory: ./packages/streams
         run: yarn jest
 
-  commit:
-    name: Commit
-    needs: test-streams
-    runs-on: ubuntu-latest
-
-    steps:
       - name: Commit
         continue-on-error: true
         run: |
