@@ -1,7 +1,10 @@
 {
   "references": [
     {
-      "path": "./packages/serverless-offline-streams"
+      "path": "./packages/streams"
+    },
+    {
+      "path": "./packages/secrets-manager-simulator"
     },
   ],
   "files": [],

@@ -8,16 +8,12 @@
     }
   },
   "compilerOptions": {
-    "outDir": "dist",
-    "noEmit": true
+    "rootDir": "src",
+    "outDir": "dist"
   },
   "include": [
-    "resources",
-    "serverless.ts"
+    "src"
   ],
   "references": [
-    {
-      "path": "../serverless-offline-streams"
-    }
   ]
 }

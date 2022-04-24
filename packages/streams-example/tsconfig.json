@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.packages.json",
+  "ts-node": {
+    "_comment": "This block is needed for ts-node to correctly import ES6 modules. ts-node is used when parsing serverless.ts",
+    "transpileOnly": true,
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  },
+  "compilerOptions": {
+    "outDir": "dist",
+    "noEmit": true
+  },
+  "include": [
+    "serverless.ts"
+  ],
+  "references": [
+    {
+      "path": "../streams"
+    }
+  ]
+}
