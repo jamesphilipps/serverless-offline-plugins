@@ -1,7 +1,7 @@
 {
   "name": "serverless-offline-secrets-manager-simulator",
   "description": "This plugin exposes a secrets manager compatible API on a configurable port whenever Serverless Offline is started.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/index.js",
   "license": "MIT",
   "keywords": ["serverless", "serverless-offline", "secrets manager", "plugin"],
