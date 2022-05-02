@@ -53,6 +53,9 @@ custom:
       purgeExistingQueuesOnStart: false # Optional. If true, will purge all existing queues in elasticmq on startup
       additionalQueues: # Optional. Additional queues to create on startup
         -  name: 'Queue1', # Queue name to bind handlers to
+           aliases: # Aliases for the queue - Useful when binding to output variables in other stacks
+             - "Queue1Alias1"
+             - "Queue1Alias2"
            visibilityTimeout: 5 # Optional. Queue VisibilityTimeout
            delaySeconds: 5   # Optional. Queue DelaySeconds
       pollConfig: # Optional. See below for an explanation of how polling works
