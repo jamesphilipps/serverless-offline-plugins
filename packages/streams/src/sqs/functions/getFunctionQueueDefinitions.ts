@@ -18,6 +18,7 @@ const getFunctionQueueDefinitions = (config: PluginConfiguration, resources: Str
             const queueName = getQueueNameFromArn(config, resources)(sourceEvent.sqs.arn);
             return ({
                 name: queueName,
+                aliases: [],
                 fifo: queueName.endsWith(".fifo"),
                 handlerFunctions: [f.functionName],
             })

@@ -4,9 +4,10 @@ import PluginConfiguration, {ConfigurationQueueDef} from "../../PluginConfigurat
 
 const getConfigQueueDefinitions = (config: PluginConfiguration): QueueDef[] => {
     const toQueueDef = (v: ConfigurationQueueDef): QueueDef => {
-        const {name, visibilityTimeout, delaySeconds} = v
+        const {name, aliases, visibilityTimeout, delaySeconds} = v
         return ({
             name,
+            aliases: aliases || [],
             visibilityTimeout,
             delaySeconds,
             fifo: name.endsWith(".fifo"),

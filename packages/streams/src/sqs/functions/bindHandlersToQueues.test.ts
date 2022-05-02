@@ -24,6 +24,7 @@ describe('bindHandlersToQueues', () => {
         name,
         fifo: false,
         handlerFunctions: [],
+        aliases: [],
         queueUrl: 'http://localhost',
         queueArn: arn(name)
     })

@@ -10,6 +10,7 @@ var getFunctionQueueDefinitions = function (config, resources) {
             var queueName = (0, utils_1.getQueueNameFromArn)(config, resources)(sourceEvent.sqs.arn);
             return ({
                 name: queueName,
+                aliases: [],
                 fifo: queueName.endsWith(".fifo"),
                 handlerFunctions: [f.functionName]
             });

@@ -1,4 +1,3 @@
-import {SLS_CUSTOM_OPTION} from "../constants";
 import {QueueDef} from "./QueueDef";
 import PluginConfiguration from "../PluginConfiguration";
 import {extractResourceNameFromArn, StringKeyObject} from "../utils";
@@ -26,6 +25,7 @@ export const getQueueDefinitionsFromResources = (resources: StringKeyObject<any>
         .map(([resourceKey, v]) => ({
             resourceKey,
             name: v?.Properties?.QueueName,
+            aliases: [],
             fifo: v?.Properties?.FifoQueue,
             visibilityTimeout: v?.Properties?.VisibilityTimeout,
             delaySeconds: v?.Properties?.DelaySeconds,

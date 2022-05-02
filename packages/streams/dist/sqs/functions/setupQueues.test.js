@@ -54,6 +54,7 @@ var PluginConfiguration_1 = require("../../PluginConfiguration");
 var queueDef = function (name, handlerFunctions, resourceKey) { return ({
     resourceKey: resourceKey,
     name: name,
+    aliases: [],
     handlerFunctions: handlerFunctions,
     fifo: name.endsWith('.fifo')
 }); };

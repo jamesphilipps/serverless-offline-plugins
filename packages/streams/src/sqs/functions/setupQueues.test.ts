@@ -16,11 +16,11 @@ import setupQueues, {
     getSingleQueueDetails
 } from "./setupQueues";
 import {getDefaultPluginConfiguration} from "../../PluginConfiguration";
-import {getPluginConfiguration} from "../../utils";
 
 const queueDef = (name: string, handlerFunctions: string[], resourceKey?: string): QueueDef => ({
     resourceKey,
     name,
+    aliases: [],
     handlerFunctions,
     fifo: name.endsWith('.fifo'),
 })

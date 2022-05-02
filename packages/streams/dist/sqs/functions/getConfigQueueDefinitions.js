@@ -4,9 +4,10 @@ var mergeQueueDefinitions_1 = require("./mergeQueueDefinitions");
 var getConfigQueueDefinitions = function (config) {
     var _a;
     var toQueueDef = function (v) {
-        var name = v.name, visibilityTimeout = v.visibilityTimeout, delaySeconds = v.delaySeconds;
+        var name = v.name, aliases = v.aliases, visibilityTimeout = v.visibilityTimeout, delaySeconds = v.delaySeconds;
         return ({
             name: name,
+            aliases: aliases || [],
             visibilityTimeout: visibilityTimeout,
             delaySeconds: delaySeconds,
             fifo: name.endsWith(".fifo"),

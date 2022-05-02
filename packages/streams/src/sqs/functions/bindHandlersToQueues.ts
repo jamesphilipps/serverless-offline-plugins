@@ -1,4 +1,4 @@
-import {ActiveQueueDef} from "../QueueDef";
+import {ActiveQueueDef, QueueDef} from "../QueueDef";
 import mergeQueueDefinitions from "./mergeQueueDefinitions";
 import PluginConfiguration from "../../PluginConfiguration";
 import {StringKeyObject} from "../../utils";
@@ -16,9 +16,16 @@ const bindHandlersToQueues = (
     queues: ActiveQueueDef[],
     functionsWithSqsEvents: StringKeyObject<ParsedFunctionDefinition>
 ): ActiveQueueDef[] => {
+    logDebug("binding handlers to queues")
+
     const getSqsEvents = (f: ParsedFunctionDefinition) => f.events.filter(e => e.type === 'SQS')
 
-    const queueMap = Object.fromEntries(queues.map(queue => [queue.name, queue] as [string, ActiveQueueDef]))
+    const queueMap = Object.fromEntries(
+        queues.flatMap(queue => //
+            [queue.name, ...queue.aliases].map(alias => [alias, queue] as [string, ActiveQueueDef]) //
+        )
+    )
+    logDebug(`queueMap=${JSON.stringify(queueMap)}`)
 
     const eventMappings = Object.entries(functionsWithSqsEvents)
         .map(([_, func]) => [func.functionName, getSqsEvents(func)] as [string, StreamsEventMapping[]])
@@ -30,18 +37,17 @@ const bindHandlersToQueues = (
             return eventMappings.map(e => {
                 const sourceEvent = e.sourceEvent as SqsEventMappingDefinition;
                 const arn = sourceEvent.sqs.arn;
+                const arnStr = typeof arn === 'object' ? JSON.stringify(arn) : arn
                 const targetQueueName = getQueueNameFromArn(config, resources)(sourceEvent.sqs.arn)
                 const originalQueueDef = queueMap[targetQueueName]
 
-                logDebug(arn)
-                logDebug(targetQueueName)
-                logDebug(queueMap)
+                logDebug(`Bind queue (arn='${arnStr}', targetQueueName='${targetQueueName}', originalQueueDef=${JSON.stringify(originalQueueDef)}`)
 
                 if (originalQueueDef) {
                     return {...originalQueueDef, handlerFunctions: [functionName]} as ActiveQueueDef
                 } else {
                     // Warn the user or error if there isn't an active queue definition for this event binding
-                    const message = `No queue definition with arn: '${arn}' found, but it was referenced by an event mapping in function: '${functionName}'`
+                    const message = `No queue definition with arn: '${arnStr}' found, but it was referenced by an event mapping in function: '${functionName}'`
                     if (config.sqs.errorOnMissingQueueDefinition) throw Error(message)
                     else log(`${LOG_MARKER} WARNING: ${message}`)
                     return undefined

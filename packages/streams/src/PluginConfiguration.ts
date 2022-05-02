@@ -3,6 +3,7 @@ import {StringKeyObject} from "./utils";
 
 export interface ConfigurationQueueDef {
     name: string
+    aliases?: string[]
     visibilityTimeout?: number
     delaySeconds?: number
 }

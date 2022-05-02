@@ -5,6 +5,7 @@ import {QueueDef} from "../QueueDef";
 const queueDef = (name: string, handlerFunctions: string[], resourceKey?: string, create?:boolean): QueueDef => ({
     resourceKey,
     name,
+    aliases: [],
     handlerFunctions,
     create,
     fifo: name.endsWith('.fifo'),

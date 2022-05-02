@@ -1,6 +1,7 @@
 export interface QueueDef {
     resourceKey?: string
     name: string
+    aliases: string[]
     fifo: boolean
     visibilityTimeout?: number
     delaySeconds?: number

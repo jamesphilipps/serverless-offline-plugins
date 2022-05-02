@@ -29,6 +29,9 @@ const serverlessConfiguration: () => Promise<AWS> = async () => {
                     {
                         sqs: {arn: { 'Fn::ImportValue': 'CrossStackQueue' }},
                     },
+                    {
+                        sqs: {arn: { 'Fn::ImportValue': 'CrossStackQueueAlias' }},
+                    },
                 ],
             },
         },
@@ -62,6 +65,7 @@ const serverlessConfiguration: () => Promise<AWS> = async () => {
                         },
                         {
                             name: 'CrossStackQueue',
+                            aliases: ['CrossStackQueueAlias'],
                             visibilityTimeout: 5,
                             delaySeconds: 5
                         },

@@ -16,6 +16,7 @@ var getQueuesToCreate_1 = require("./getQueuesToCreate");
 var queueDef = function (name, handlerFunctions, resourceKey, create) { return ({
     resourceKey: resourceKey,
     name: name,
+    aliases: [],
     handlerFunctions: handlerFunctions,
     create: create,
     fifo: name.endsWith('.fifo')

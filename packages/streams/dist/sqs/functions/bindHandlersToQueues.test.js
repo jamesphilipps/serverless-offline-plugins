@@ -31,6 +31,7 @@ describe('bindHandlersToQueues', function () {
         name: name,
         fifo: false,
         handlerFunctions: [],
+        aliases: [],
         queueUrl: 'http://localhost',
         queueArn: arn(name)
     }); };
