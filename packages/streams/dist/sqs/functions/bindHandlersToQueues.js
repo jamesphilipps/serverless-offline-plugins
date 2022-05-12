@@ -24,13 +24,11 @@ var mergeQueueDefinitions_1 = require("./mergeQueueDefinitions");
 var logging_1 = require("../../logging");
 var utils_1 = require("../utils");
 var bindHandlersToQueues = function (config, resources, queues, functionsWithSqsEvents) {
-    (0, logging_1.logDebug)("binding handlers to queues");
     var getSqsEvents = function (f) { return f.events.filter(function (e) { return e.type === 'SQS'; }); };
     var queueMap = Object.fromEntries(queues.flatMap(function (queue) {
         return __spreadArray([queue.name], queue.aliases, true).map(function (alias) { return [alias, queue]; });
     } //
     ));
-    (0, logging_1.logDebug)("queueMap=".concat(JSON.stringify(queueMap)));
     var eventMappings = Object.entries(functionsWithSqsEvents)
         .map(function (_a) {
         var _ = _a[0], func = _a[1];
@@ -46,7 +44,6 @@ var bindHandlersToQueues = function (config, resources, queues, functionsWithSqs
             var arnStr = typeof arn === 'object' ? JSON.stringify(arn) : arn;
             var targetQueueName = (0, utils_1.getQueueNameFromArn)(config, resources)(sourceEvent.sqs.arn);
             var originalQueueDef = queueMap[targetQueueName];
-            (0, logging_1.logDebug)("Bind queue (arn='".concat(arnStr, "', targetQueueName='").concat(targetQueueName, "', originalQueueDef=").concat(JSON.stringify(originalQueueDef)));
             if (originalQueueDef) {
                 return __assign(__assign({}, originalQueueDef), { handlerFunctions: [functionName] });
             }

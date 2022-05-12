@@ -68,7 +68,7 @@ var ServerlessSecretsManagerSimulatorPlugin = /** @class */ (function () {
             return (_a = serverless.cli).log.apply(_a, args);
         });
         this.options = mergeOptions(serverless, cliOptions);
-        (0, logging_1.logDebug)('options:', this.options);
+        (0, logging_1.logDebug)('options:', JSON.stringify(this.options || {}, undefined, 2));
         this.hooks = {
             "offline:start:init": this.start.bind(this),
             "offline:start:end": this.end.bind(this)

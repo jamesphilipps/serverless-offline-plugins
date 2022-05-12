@@ -30,7 +30,7 @@ export default class ServerlessSecretsManagerSimulatorPlugin {
         setLog((...args: [string, string, LogOptions]) => serverless.cli.log(...args))
 
         this.options = mergeOptions(serverless, cliOptions)
-        logDebug('options:', this.options);
+        logDebug('options:', JSON.stringify(this.options || {}, undefined,2));
 
         this.hooks = {
             "offline:start:init": this.start.bind(this),
@@ -52,7 +52,7 @@ export default class ServerlessSecretsManagerSimulatorPlugin {
 
         const port = this.options[SLS_CUSTOM_OPTION]?.port || DEFAULT_PORT
         this.server = createAndStartServer(port, createRequestListener(context))
-        log(`Started Secrets Manager Simulator at http://localhost:${port}` )
+        log(`Started Secrets Manager Simulator at http://localhost:${port}`)
     }
 
     async end() {

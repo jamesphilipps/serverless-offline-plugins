@@ -52,8 +52,8 @@ var constants_1 = require("./constants");
 var SQStreamHandler_1 = require("./sqs/SQStreamHandler");
 var DynamoDBStreamHandler_1 = require("./dynamodb/DynamoDBStreamHandler");
 var PluginConfiguration_1 = require("./PluginConfiguration");
-var objectMerge = require("lodash.merge");
 var utils_1 = require("./utils");
+var objectMerge = require("lodash.merge");
 var ServerlessOfflineStreamsPlugin = /** @class */ (function () {
     function ServerlessOfflineStreamsPlugin(serverless, cliOptions) {
         this.serverless = serverless;
@@ -68,7 +68,7 @@ var ServerlessOfflineStreamsPlugin = /** @class */ (function () {
             return (_a = serverless.cli).log.apply(_a, args);
         });
         this.options = mergeOptions(serverless, cliOptions);
-        (0, logging_1.logDebug)('options:', this.options);
+        (0, logging_1.logDebug)('options:', JSON.stringify(this.options || {}, undefined, 2));
         this.hooks = {
             "offline:start:init": this.start.bind(this),
             "offline:start:end": this.end.bind(this)
@@ -80,11 +80,13 @@ var ServerlessOfflineStreamsPlugin = /** @class */ (function () {
             var config;
             return __generator(this, function (_c) {
                 config = (0, PluginConfiguration_1.validateConfig)(objectMerge((0, PluginConfiguration_1.getDefaultPluginConfiguration)(), (0, utils_1.getPluginConfiguration)(this.serverless)));
-                (0, logging_1.logDebug)("Plugin Config", config);
+                (0, logging_1.logDebug)("Plugin Config", JSON.stringify(config, undefined, 2));
                 if ((_a = config === null || config === void 0 ? void 0 : config.dynamodb) === null || _a === void 0 ? void 0 : _a.enabled) {
+                    (0, logging_1.logDebug)("DynamoDB handler is enabled");
                     this.activeHandlers.push(new DynamoDBStreamHandler_1.DynamoDBStreamHandler(this.serverless, this.options));
                 }
                 if ((_b = config === null || config === void 0 ? void 0 : config.sqs) === null || _b === void 0 ? void 0 : _b.enabled) {
+                    (0, logging_1.logDebug)("SQS handler is enabled");
                     this.activeHandlers.push(new SQStreamHandler_1.SQStreamHandler(this.serverless, this.options, config));
                 }
                 return [2 /*return*/, Promise.all(this.activeHandlers.map(function (h) { return h.start(); }))];

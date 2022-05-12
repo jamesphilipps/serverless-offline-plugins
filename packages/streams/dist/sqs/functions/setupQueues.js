@@ -147,7 +147,8 @@ var createQueues = function (sqsClient, queueDefinitions) { return __awaiter(voi
                                 QueueName: queue.name,
                                 Attributes: {
                                     VisibilityTimeout: (_a = queue.visibilityTimeout) === null || _a === void 0 ? void 0 : _a.toString(),
-                                    DelaySeconds: (_b = queue.delaySeconds) === null || _b === void 0 ? void 0 : _b.toString()
+                                    DelaySeconds: (_b = queue.delaySeconds) === null || _b === void 0 ? void 0 : _b.toString(),
+                                    FifoQueue: queue.fifo.toString()
                                 }
                             }))];
                         case 1:

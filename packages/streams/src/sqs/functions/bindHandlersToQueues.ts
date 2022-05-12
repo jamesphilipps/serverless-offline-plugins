@@ -16,8 +16,6 @@ const bindHandlersToQueues = (
     queues: ActiveQueueDef[],
     functionsWithSqsEvents: StringKeyObject<ParsedFunctionDefinition>
 ): ActiveQueueDef[] => {
-    logDebug("binding handlers to queues")
-
     const getSqsEvents = (f: ParsedFunctionDefinition) => f.events.filter(e => e.type === 'SQS')
 
     const queueMap = Object.fromEntries(
@@ -25,7 +23,6 @@ const bindHandlersToQueues = (
             [queue.name, ...queue.aliases].map(alias => [alias, queue] as [string, ActiveQueueDef]) //
         )
     )
-    logDebug(`queueMap=${JSON.stringify(queueMap)}`)
 
     const eventMappings = Object.entries(functionsWithSqsEvents)
         .map(([_, func]) => [func.functionName, getSqsEvents(func)] as [string, StreamsEventMapping[]])
@@ -40,8 +37,6 @@ const bindHandlersToQueues = (
                 const arnStr = typeof arn === 'object' ? JSON.stringify(arn) : arn
                 const targetQueueName = getQueueNameFromArn(config, resources)(sourceEvent.sqs.arn)
                 const originalQueueDef = queueMap[targetQueueName]
-
-                logDebug(`Bind queue (arn='${arnStr}', targetQueueName='${targetQueueName}', originalQueueDef=${JSON.stringify(originalQueueDef)}`)
 
                 if (originalQueueDef) {
                     return {...originalQueueDef, handlerFunctions: [functionName]} as ActiveQueueDef

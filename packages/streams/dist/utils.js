@@ -2,7 +2,6 @@
 exports.__esModule = true;
 exports.keyMerge = exports.extractResourceNameFromArn = exports.getHandlersAsLambdaFunctionDefinitions = exports.getPluginConfiguration = void 0;
 var constants_1 = require("./constants");
-var logging_1 = require("./logging");
 var getPluginConfiguration = function (serverless) { return serverless.service.custom[constants_1.SLS_CUSTOM_OPTION]; };
 exports.getPluginConfiguration = getPluginConfiguration;
 var getHandlersAsLambdaFunctionDefinitions = function (serverless) {
@@ -21,7 +20,6 @@ var extractResourceNameFromArn = function (arnExtract, getNameFromResources) { r
         return resourceName;
     };
     var arnStr = typeof arn == 'string' ? arn : JSON.stringify(arn);
-    (0, logging_1.logDebug)("extractResourceNameFromArn: '".concat(arnStr, "'"));
     if (typeof arn === 'string') {
         // If arn starts with arn: then this is an AWS Arn and can be parsed. Otherwise, it is probably an output
         // reference and can be used directly

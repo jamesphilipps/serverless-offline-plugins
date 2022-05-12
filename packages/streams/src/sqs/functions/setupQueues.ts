@@ -76,7 +76,8 @@ export const createQueues = async (sqsClient: SQSClient, queueDefinitions: Queue
                 QueueName: queue.name,
                 Attributes: {
                     VisibilityTimeout: queue.visibilityTimeout?.toString(),
-                    DelaySeconds: queue.delaySeconds?.toString()
+                    DelaySeconds: queue.delaySeconds?.toString(),
+                    FifoQueue: queue.fifo.toString()
                 }
             }))
             const details = await getSingleQueueDetails(sqsClient, createResult.QueueUrl)

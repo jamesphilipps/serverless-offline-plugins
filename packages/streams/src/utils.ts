@@ -28,7 +28,6 @@ export const extractResourceNameFromArn = (
     }
 
     const arnStr = typeof arn == 'string' ? arn : JSON.stringify(arn)
-    logDebug(`extractResourceNameFromArn: '${arnStr}'`)
 
     if (typeof arn === 'string') {
         // If arn starts with arn: then this is an AWS Arn and can be parsed. Otherwise, it is probably an output

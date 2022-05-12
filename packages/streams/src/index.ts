@@ -6,8 +6,8 @@ import {StreamHandler} from "./StreamHandler";
 import {SQStreamHandler} from "./sqs/SQStreamHandler";
 import {DynamoDBStreamHandler} from "./dynamodb/DynamoDBStreamHandler";
 import {getDefaultPluginConfiguration, validateConfig} from "./PluginConfiguration";
-import objectMerge = require('lodash.merge');
 import {getPluginConfiguration, StringKeyObject} from "./utils";
+import objectMerge = require('lodash.merge');
 
 export default class ServerlessOfflineStreamsPlugin {
     commands: object = []
@@ -20,7 +20,7 @@ export default class ServerlessOfflineStreamsPlugin {
         setLog((...args: [string, string, LogOptions]) => serverless.cli.log(...args))
 
         this.options = mergeOptions(serverless, cliOptions)
-        logDebug('options:', this.options);
+        logDebug('options:', JSON.stringify(this.options || {}, undefined, 2));
 
         this.hooks = {
             "offline:start:init": this.start.bind(this),
@@ -33,13 +33,15 @@ export default class ServerlessOfflineStreamsPlugin {
         const config = validateConfig(
             objectMerge(getDefaultPluginConfiguration(), getPluginConfiguration(this.serverless))
         )
-        logDebug("Plugin Config", config)
+        logDebug("Plugin Config", JSON.stringify(config, undefined, 2))
 
 
         if (config?.dynamodb?.enabled) {
+            logDebug("DynamoDB handler is enabled")
             this.activeHandlers.push(new DynamoDBStreamHandler(this.serverless, this.options))
         }
         if (config?.sqs?.enabled) {
+            logDebug("SQS handler is enabled")
             this.activeHandlers.push(new SQStreamHandler(this.serverless, this.options, config))
         }
 
