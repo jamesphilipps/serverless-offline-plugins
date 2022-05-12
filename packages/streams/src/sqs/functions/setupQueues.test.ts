@@ -287,6 +287,7 @@ describe('setupQueues', () => {
                 name: queueDefinitions[0].name,
                 queueArn: queueArn1,
                 queueUrl: queueUrl1,
+                aliases: []
             })
             expect(activeQueues[1]).toEqual({
                 fifo: false,
@@ -295,6 +296,31 @@ describe('setupQueues', () => {
                 name: queueDefinitions[1].name,
                 queueArn: queueArn2,
                 queueUrl: queueUrl2,
+                aliases: []
+            })
+        })
+        it('creates queue as FIFO if queue is FIFO', async () => {
+            const queueUrl = 'http://127.0.0.1/queue1.fifo';
+            const queueArn = 'arn:aws:sqs:eu-west-1:444455556666:queue1.fifo'
+            const queueDefinitions = [
+                queueDef('queue1.fifo', [], 'Queue1'),
+            ]
+
+            sqsClientMock.on(CreateQueueCommand, {QueueName: queueDefinitions[0].name})
+                .resolves({QueueUrl: queueUrl})
+            sqsClientMock.on(GetQueueAttributesCommand, {QueueUrl: queueUrl})
+                .resolves({Attributes: {QueueArn: queueArn}})
+
+            const activeQueues = await invoke(queueDefinitions)
+            expect(activeQueues.length).toBe(1)
+            expect(activeQueues[0]).toEqual({
+                fifo: true,
+                handlerFunctions: [],
+                resourceKey: queueDefinitions[0].resourceKey,
+                name: queueDefinitions[0].name,
+                queueArn: queueArn,
+                queueUrl: queueUrl,
+                aliases: []
             })
         })
 
