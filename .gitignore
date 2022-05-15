@@ -14,7 +14,7 @@
 **/tsconfig.tsbuildinfo
 **/.build
 **/.esbuild
-#**/dist
+**/dist
 
 # misc
 .DS_Store
