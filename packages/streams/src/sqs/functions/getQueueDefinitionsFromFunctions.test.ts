@@ -3,7 +3,7 @@ import {
     SqsEventMappingDefinition,
     StreamsEventMapping,
 } from "../../StreamFunctionDefinitions";
-import getFunctionQueueDefinitions from "./getFunctionQueueDefinitions";
+import getQueueDefinitionsFromFunctions from "./getQueueDefinitionsFromFunctions";
 import {getDefaultPluginConfiguration} from "../../PluginConfiguration";
 import {StringKeyObject} from "../../utils";
 
@@ -18,8 +18,8 @@ const functionMapping = (functionName: string, events: StreamsEventMapping[]): P
     events
 })
 
-describe('getFunctionQueueDefinitions', () => {
-    const func = getFunctionQueueDefinitions(getDefaultPluginConfiguration(), {})
+describe('getQueueDefinitionsFromFunctions', () => {
+    const func = getQueueDefinitionsFromFunctions(getDefaultPluginConfiguration(), {})
 
     it('parses queues correctly from functions', () => {
         const functionsWithSqsEvents: StringKeyObject<ParsedFunctionDefinition> = {

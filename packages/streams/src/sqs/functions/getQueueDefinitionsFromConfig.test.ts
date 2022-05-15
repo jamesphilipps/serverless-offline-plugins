@@ -1,9 +1,9 @@
 import PluginConfiguration, {ConfigurationQueueDef} from "../../PluginConfiguration";
-import getConfigQueueDefinitions from "./getConfigQueueDefinitions";
+import getQueueDefinitionsFromConfig from "./getQueueDefinitionsFromConfig";
 
 
-describe('getConfigQueueDefinitions', () => {
-    const func = getConfigQueueDefinitions
+describe('getQueueDefinitionsFromConfig', () => {
+    const func = getQueueDefinitionsFromConfig
 
     it('parses queues correctly from additional queues', () => {
         const queues: ConfigurationQueueDef[] = [

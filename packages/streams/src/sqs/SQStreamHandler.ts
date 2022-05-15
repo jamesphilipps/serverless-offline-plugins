@@ -5,13 +5,13 @@ import {StreamHandler} from "../StreamHandler";
 import SQSPoller from "./SQSPoller";
 import {ListQueuesCommand, SQSClient} from "@aws-sdk/client-sqs";
 import {getFunctionDefinitionsWithStreamsEvents} from "../StreamFunctionDefinitions";
-import {getQueueDefinitionsFromResources} from "./utils";
 import getQueuesToCreate from "./functions/getQueuesToCreate";
 import setupQueues from "./functions/setupQueues";
 import PluginConfiguration from "../PluginConfiguration";
 import {getHandlersAsLambdaFunctionDefinitions, StringKeyObject} from "../utils";
-import getConfigQueueDefinitions from "./functions/getConfigQueueDefinitions";
+import getQueueDefinitionsFromConfig from "./functions/getQueueDefinitionsFromConfig";
 import bindHandlersToQueues from "./functions/bindHandlersToQueues";
+import getQueueDefinitionsFromResources from "./functions/getQueueDefinitionsFromResources";
 
 
 export class SQStreamHandler implements StreamHandler {
@@ -36,7 +36,7 @@ export class SQStreamHandler implements StreamHandler {
         logDebug("resourceQueueDefinitions", resourceQueueDefinitions)
 
         // Load queue definitions from plugin configuration
-        const configQueueDefinitions = getConfigQueueDefinitions(this.config)
+        const configQueueDefinitions = getQueueDefinitionsFromConfig(this.config)
         logDebug("configQueueDefinitions", configQueueDefinitions)
 
         // Filter any queues that should not be created (either because the plugin is set to not create resource

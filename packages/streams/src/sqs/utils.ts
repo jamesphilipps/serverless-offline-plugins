@@ -1,6 +1,6 @@
-import {QueueDef} from "./QueueDef";
 import PluginConfiguration from "../PluginConfiguration";
 import {extractResourceNameFromArn, StringKeyObject} from "../utils";
+import getQueueDefinitionsFromResources from "./functions/getQueueDefinitionsFromResources";
 
 // TODO: test
 export const getQueueNameFromArnString = (arn: string) => getQueueNameFromArnParts(arn.split(":"))
@@ -15,20 +15,3 @@ export const getQueueNameFromArn = (config: PluginConfiguration, resources: Stri
     )(arn)
 }
 
-export const getQueueDefinitionsFromResources = (resources: StringKeyObject<any>): QueueDef[] => {
-    if (!resources) {
-        return []
-    }
-
-    return Object.entries(resources)
-        .filter(([_, v]) => v?.Type === 'AWS::SQS::Queue')
-        .map(([resourceKey, v]) => ({
-            resourceKey,
-            name: v?.Properties?.QueueName,
-            aliases: [],
-            fifo: v?.Properties?.FifoQueue,
-            visibilityTimeout: v?.Properties?.VisibilityTimeout,
-            delaySeconds: v?.Properties?.DelaySeconds,
-            handlerFunctions: []
-        }))
-}

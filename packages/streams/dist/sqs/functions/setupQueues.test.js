@@ -427,7 +427,8 @@ describe('setupQueues', function () {
                             resourceKey: queueDefinitions[0].resourceKey,
                             name: queueDefinitions[0].name,
                             queueArn: queueArn1,
-                            queueUrl: queueUrl1
+                            queueUrl: queueUrl1,
+                            aliases: []
                         });
                         expect(activeQueues[1]).toEqual({
                             fifo: false,
@@ -435,7 +436,39 @@ describe('setupQueues', function () {
                             resourceKey: queueDefinitions[1].resourceKey,
                             name: queueDefinitions[1].name,
                             queueArn: queueArn2,
-                            queueUrl: queueUrl2
+                            queueUrl: queueUrl2,
+                            aliases: []
+                        });
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+        it('creates queue as FIFO if queue is FIFO', function () { return __awaiter(void 0, void 0, void 0, function () {
+            var queueUrl, queueArn, queueDefinitions, activeQueues;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        queueUrl = 'http://127.0.0.1/queue1.fifo';
+                        queueArn = 'arn:aws:sqs:eu-west-1:444455556666:queue1.fifo';
+                        queueDefinitions = [
+                            queueDef('queue1.fifo', [], 'Queue1'),
+                        ];
+                        sqsClientMock.on(client_sqs_1.CreateQueueCommand, { QueueName: queueDefinitions[0].name })
+                            .resolves({ QueueUrl: queueUrl });
+                        sqsClientMock.on(client_sqs_1.GetQueueAttributesCommand, { QueueUrl: queueUrl })
+                            .resolves({ Attributes: { QueueArn: queueArn } });
+                        return [4 /*yield*/, invoke(queueDefinitions)];
+                    case 1:
+                        activeQueues = _a.sent();
+                        expect(activeQueues.length).toBe(1);
+                        expect(activeQueues[0]).toEqual({
+                            fifo: true,
+                            handlerFunctions: [],
+                            resourceKey: queueDefinitions[0].resourceKey,
+                            name: queueDefinitions[0].name,
+                            queueArn: queueArn,
+                            queueUrl: queueUrl,
+                            aliases: []
                         });
                         return [2 /*return*/];
                 }

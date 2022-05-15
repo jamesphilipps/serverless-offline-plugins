@@ -9,7 +9,7 @@ import mergeQueueDefinitions from "./mergeQueueDefinitions";
 import PluginConfiguration from "../../PluginConfiguration";
 import {StringKeyObject} from "../../utils";
 
-const getFunctionQueueDefinitions = (config: PluginConfiguration, resources: StringKeyObject<any>) =>
+const getQueueDefinitionsFromFunctions = (config: PluginConfiguration, resources: StringKeyObject<any>) =>
     (functionsWithSqsEvents: StringKeyObject<ParsedFunctionDefinition>): QueueDef[] => {
         const getSqsEvents = (f: ParsedFunctionDefinition) => f.events.filter(e => e.type === 'SQS')
 
@@ -33,4 +33,4 @@ const getFunctionQueueDefinitions = (config: PluginConfiguration, resources: Str
         )
     }
 
-export default getFunctionQueueDefinitions
+export default getQueueDefinitionsFromFunctions

@@ -42,12 +42,12 @@ var lambda_1 = require("serverless-offline/dist/lambda");
 var SQSPoller_1 = require("./SQSPoller");
 var client_sqs_1 = require("@aws-sdk/client-sqs");
 var StreamFunctionDefinitions_1 = require("../StreamFunctionDefinitions");
-var utils_1 = require("./utils");
 var getQueuesToCreate_1 = require("./functions/getQueuesToCreate");
 var setupQueues_1 = require("./functions/setupQueues");
-var utils_2 = require("../utils");
-var getConfigQueueDefinitions_1 = require("./functions/getConfigQueueDefinitions");
+var utils_1 = require("../utils");
+var getQueueDefinitionsFromConfig_1 = require("./functions/getQueueDefinitionsFromConfig");
 var bindHandlersToQueues_1 = require("./functions/bindHandlersToQueues");
+var getQueueDefinitionsFromResources_1 = require("./functions/getQueueDefinitionsFromResources");
 var SQStreamHandler = /** @class */ (function () {
     function SQStreamHandler(serverless, options, config) {
         this.serverless = serverless;
@@ -68,10 +68,10 @@ var SQStreamHandler = /** @class */ (function () {
                     case 1:
                         _c.sqsClient = _d.sent();
                         this.slsOfflineLambda = new lambda_1["default"](this.serverless, this.options);
-                        this.slsOfflineLambda.create((0, utils_2.getHandlersAsLambdaFunctionDefinitions)(this.serverless));
-                        resourceQueueDefinitions = (0, utils_1.getQueueDefinitionsFromResources)(resources);
+                        this.slsOfflineLambda.create((0, utils_1.getHandlersAsLambdaFunctionDefinitions)(this.serverless));
+                        resourceQueueDefinitions = (0, getQueueDefinitionsFromResources_1["default"])(resources);
                         (0, logging_1.logDebug)("resourceQueueDefinitions", resourceQueueDefinitions);
-                        configQueueDefinitions = (0, getConfigQueueDefinitions_1["default"])(this.config);
+                        configQueueDefinitions = (0, getQueueDefinitionsFromConfig_1["default"])(this.config);
                         (0, logging_1.logDebug)("configQueueDefinitions", configQueueDefinitions);
                         queuesToCreate = (0, getQueuesToCreate_1["default"])(this.config)(resourceQueueDefinitions, configQueueDefinitions);
                         (0, logging_1.logDebug)("queuesToCreate", queuesToCreate);
