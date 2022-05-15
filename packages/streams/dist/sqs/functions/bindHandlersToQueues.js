@@ -42,7 +42,7 @@ var bindHandlersToQueues = function (config, resources, queues, functionsWithSqs
             var sourceEvent = e.sourceEvent;
             var arn = sourceEvent.sqs.arn;
             var arnStr = typeof arn === 'object' ? JSON.stringify(arn) : arn;
-            var targetQueueName = (0, utils_1.getQueueNameFromArn)(resources)(sourceEvent.sqs.arn);
+            var targetQueueName = (0, utils_1.getQueueNameFromArn)(config.endpoint, resources)(sourceEvent.sqs.arn);
             var originalQueueDef = queueMap[targetQueueName];
             if (originalQueueDef) {
                 return __assign(__assign({}, originalQueueDef), { handlerFunctions: [functionName] });

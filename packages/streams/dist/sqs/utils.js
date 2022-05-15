@@ -8,8 +8,8 @@ var getQueueNameFromArnString = function (arn) { return (0, exports.getQueueName
 exports.getQueueNameFromArnString = getQueueNameFromArnString;
 var getQueueNameFromArnParts = function (parts) { return parts[5]; };
 exports.getQueueNameFromArnParts = getQueueNameFromArnParts;
-var getQueueNameFromArn = function (resources) { return function (arn) {
-    return (0, utils_1.extractResourceNameFromArn)(exports.getQueueNameFromArnParts, function (key) { return (0, getDefinedQueues_1.getQueueDefinitionsFromResources)(resources)
+var getQueueNameFromArn = function (localEndpoint, resources) { return function (arn) {
+    return (0, utils_1.extractResourceNameFromArn)(exports.getQueueNameFromArnParts, function (key) { return (0, getDefinedQueues_1.getQueueDefinitionsFromResources)(localEndpoint, resources)
         .filter(function (queue) { return queue.resourceKey === key; })
         .map(function (queue) { return queue.name; })
         .find(function (_) { return true; }); })(arn);

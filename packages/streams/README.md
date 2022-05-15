@@ -4,9 +4,9 @@ This plugin provides support for event driven systems using [Serverless Offline]
 
 # Supported Features
 ## SQS
-* Binds to SQS compatible MQ instances. It is recommended to include an [ElasticMQ](https://github.com/softwaremill/elasticmq)
-  instance as part of your test stack (see the [example](packages/serverless-offline-streams-example) for a sample 
-  docker-compose file.
+* Bind to both real AWS SQS queues and SQS compatible MQ instances at the same time. It is recommended to include an 
+   [ElasticMQ](https://github.com/softwaremill/elasticmq) instance as part of your test stack (see the 
+   [example](packages/serverless-offline-streams-example) for a sample docker-compose file.
 * Auto-create SQS queues from Resource definitions
 * Create SQS queues via plugin configuration
 * Auto-scan lambda function definitions and bind queues to appropriate handlers
@@ -14,8 +14,8 @@ This plugin provides support for event driven systems using [Serverless Offline]
 * Create, Delete and purge queues on stack start (configurable)
 * Poll queues for new messages and invoke bound handlers
 * Remove messages from queues on success
-* Typescript
-* SQS queue listeners
+
+## DynamoDB
 * DynamoDB Streams events
 * DynamoDB Streams event filtering
 
@@ -48,9 +48,12 @@ custom:
     sqs:
       enabled: false # Optional. Whether to activate SQS queue event mappings
       host: http://127.0.0.1:8050 # Required. Host & port of elasticmq instance  
-      createQueuesFromResources: true # Optional. If true, will scan defined Resources for queues and create them according to the config
-      removeExistingQueuesOnStart: true # Optional. If true, will remove all existing queues in elasticmq on startup
-      purgeExistingQueuesOnStart: false # Optional. If true, will purge all existing queues in elasticmq on startup
+      
+      localQueueManagement:
+          createFromResources: true # Optional. If true, will scan defined Resources for queues and create them according to the config
+          removeOnStart: true # Optional. If true, will remove all existing queues in elasticmq on startup
+          purgeOnStart: false # Optional. If true, will purge all existing queues in elasticmq on startup
+          
       additionalQueues: # Optional. Additional queues to create on startup
         -  name: 'Queue1', # Queue name to bind handlers to
            aliases: # Aliases for the queue - Useful when binding to output variables in other stacks
@@ -58,6 +61,9 @@ custom:
              - "Queue1Alias2"
            visibilityTimeout: 5 # Optional. Queue VisibilityTimeout
            delaySeconds: 5   # Optional. Queue DelaySeconds
+           remote: # Optional. If present, the plugin assumes the queue is a real AWS queue instead of a local elasticmq one
+              queueUrl: # Required. The full URL of the queue, in AWS (in the form http(s)://sqs.REGION.amazonaws.com/ACCOUNT/QUEUE-NAME)  
+           
       pollConfig: # Optional. See below for an explanation of how polling works
         strategy: backoff # Optional. Either backoff or fixed-interval
         drainQueues: false # Optional. Whether to keep retrieving messages from a queue until there are no messages, if a message is found

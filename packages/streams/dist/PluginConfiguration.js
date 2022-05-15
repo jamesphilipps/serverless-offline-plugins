@@ -7,9 +7,11 @@ var getDefaultPluginConfiguration = function () { return ({
     },
     sqs: {
         enabled: false,
-        createQueuesFromResources: true,
-        removeExistingQueuesOnStart: true,
-        purgeExistingQueuesOnStart: false,
+        localQueueManagement: {
+            createFromResources: true,
+            removeOnStart: true,
+            purgeOnStart: false
+        },
         errorOnMissingQueueDefinition: true,
         queues: [],
         pollConfig: {

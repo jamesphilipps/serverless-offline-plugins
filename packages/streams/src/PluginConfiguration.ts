@@ -3,7 +3,9 @@ export interface ConfigurationQueueDef {
     aliases?: string[]
     visibilityTimeout?: number
     delaySeconds?: number
-    queueUrl?: string
+    remote?: {
+        queueUrl: string
+    }
 }
 
 export interface DynamoPluginConfiguration {
@@ -13,10 +15,19 @@ export interface DynamoPluginConfiguration {
 
 export interface SqsPluginConfiguration {
     enabled?: boolean
-    host?: string
-    createQueuesFromResources?: boolean
-    removeExistingQueuesOnStart?: boolean
-    purgeExistingQueuesOnStart?: boolean
+    endpoint?: string
+
+    localQueueManagement?: {
+        createFromResources?: boolean
+        removeOnStart?: boolean
+        purgeOnStart?: boolean
+    }
+
+    // TODO: purge remote queues
+    // remoteQueueManagement?: {
+    //     purgeOnStart?: boolean
+    // }
+
     errorOnMissingQueueDefinition?: boolean
     queues?: ConfigurationQueueDef[]
 
@@ -49,9 +60,12 @@ export const getDefaultPluginConfiguration = (): PluginConfiguration => ({
     },
     sqs: {
         enabled: false,
-        createQueuesFromResources: true,
-        removeExistingQueuesOnStart: true,
-        purgeExistingQueuesOnStart: false,
+        localQueueManagement: {
+            createFromResources: true,
+            removeOnStart: true,
+            purgeOnStart: false,
+        },
+
         errorOnMissingQueueDefinition: true,
         queues: [],
         pollConfig: {

@@ -39,11 +39,10 @@ exports.__esModule = true;
 var logging_1 = require("../logging");
 var client_sqs_1 = require("@aws-sdk/client-sqs");
 var SQSPoller = /** @class */ (function () {
-    function SQSPoller(options, config, queueDefinitions, sqsClient, lambda) {
+    function SQSPoller(options, config, queueDefinitions, lambda) {
         this.options = options;
         this.config = config;
         this.queueDefinitions = queueDefinitions;
-        this.sqsClient = sqsClient;
         this.lambda = lambda;
     }
     SQSPoller.prototype.start = function () {
@@ -118,12 +117,13 @@ var SQSPoller = /** @class */ (function () {
                             var response, messages, messageCount, invocationResult, successMessages, successMessageIds, failedMessages, failedMessageIds, results_1, _a;
                             return __generator(this, function (_b) {
                                 switch (_b.label) {
-                                    case 0: return [4 /*yield*/, this.sqsClient.send(new client_sqs_1.ReceiveMessageCommand({
-                                            QueueUrl: queue.queueUrl,
+                                    case 0: return [4 /*yield*/, queue.sqsClient.send(new client_sqs_1.ReceiveMessageCommand({
+                                            QueueUrl: queue.url,
                                             MaxNumberOfMessages: 10
                                         }))];
                                     case 1:
                                         response = _b.sent();
+                                        (0, logging_1.logDebug)(response);
                                         messages = response.Messages;
                                         messageCount = (messages === null || messages === void 0 ? void 0 : messages.length) || 0;
                                         if (!(messageCount > 0)) return [3 /*break*/, 8];
@@ -135,8 +135,8 @@ var SQSPoller = /** @class */ (function () {
                                         if (!(successMessages.length > 0)) return [3 /*break*/, 4];
                                         (0, logging_1.logDebug)("Successfully handled message Ids: ".concat(setToString(successMessageIds)));
                                         (0, logging_1.logDebug)("Removing successfully handled messages from queue..");
-                                        return [4 /*yield*/, this.sqsClient.send(new client_sqs_1.DeleteMessageBatchCommand({
-                                                QueueUrl: queue.queueUrl,
+                                        return [4 /*yield*/, queue.sqsClient.send(new client_sqs_1.DeleteMessageBatchCommand({
+                                                QueueUrl: queue.url,
                                                 Entries: successMessages.map(function (m) { return ({ Id: m.MessageId, ReceiptHandle: m.ReceiptHandle }); })
                                             }))];
                                     case 3:
@@ -198,7 +198,7 @@ var SQSPoller = /** @class */ (function () {
                                 messageAttributes: m.MessageAttributes,
                                 md5OfBody: m.MD5OfBody,
                                 eventSource: "aws:sqs",
-                                eventSourceARN: queue.queueArn,
+                                eventSourceARN: queue.arn,
                                 awsRegion: _this.options.region
                             }); })
                         };
@@ -207,7 +207,7 @@ var SQSPoller = /** @class */ (function () {
                     case 1:
                         handlerResults = _a.sent();
                         failedMessageIds = new Set(handlerResults.map(function (r) {
-                            return r.batchItemFailures.map(function (f) { return f.itemIdentifier; });
+                            return ((r === null || r === void 0 ? void 0 : r.batchItemFailures) || []).map(function (f) { return f.itemIdentifier; });
                         }).flat());
                         failedMessages = messages.filter(function (m) { return failedMessageIds.has(m.MessageId); });
                         successMessages = messages.filter(function (m) { return !failedMessageIds.has(m.MessageId); });

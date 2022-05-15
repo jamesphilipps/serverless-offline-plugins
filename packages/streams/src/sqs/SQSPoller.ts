@@ -1,6 +1,6 @@
 import {ActiveQueueDef} from "./QueueDef";
 import {logDebug} from "../logging";
-import {DeleteMessageBatchCommand, Message, ReceiveMessageCommand, SQSClient} from "@aws-sdk/client-sqs";
+import {DeleteMessageBatchCommand, Message, ReceiveMessageCommand} from "@aws-sdk/client-sqs";
 import {SqsPluginConfiguration} from "../PluginConfiguration";
 import {StringKeyObject} from "../utils";
 
@@ -41,7 +41,7 @@ export default class SQSPoller {
     private pollInterval: number
     private nextPoll: NodeJS.Timeout
 
-    constructor(private options: StringKeyObject<any>, private config: SqsPluginConfiguration, private queueDefinitions: ActiveQueueDef[], private sqsClient: SQSClient, private lambda: any) {
+    constructor(private options: StringKeyObject<any>, private config: SqsPluginConfiguration, private queueDefinitions: ActiveQueueDef[], private lambda: any) {
     }
 
     start() {
@@ -99,10 +99,11 @@ export default class SQSPoller {
         const noMessagesResult = {retrievedMessageCount: 0, successMessageCount: 0, failedMessageCount: 0}
 
         const processInternal = async () => {
-            const response = await this.sqsClient.send(new ReceiveMessageCommand({
-                QueueUrl: queue.queueUrl,
+            const response = await queue.sqsClient.send(new ReceiveMessageCommand({
+                QueueUrl: queue.url,
                 MaxNumberOfMessages: 10
             }))
+            logDebug(response)
 
             const messages = response.Messages;
             const messageCount = messages?.length || 0;
@@ -114,8 +115,8 @@ export default class SQSPoller {
                 if (successMessages.length > 0) {
                     logDebug(`Successfully handled message Ids: ${setToString(successMessageIds)}`)
                     logDebug(`Removing successfully handled messages from queue..`)
-                    await this.sqsClient.send(new DeleteMessageBatchCommand({
-                        QueueUrl: queue.queueUrl,
+                    await queue.sqsClient.send(new DeleteMessageBatchCommand({
+                        QueueUrl: queue.url,
                         Entries: successMessages.map(m => ({Id: m.MessageId, ReceiptHandle: m.ReceiptHandle}))
                     }))
                 }
@@ -158,7 +159,7 @@ export default class SQSPoller {
                 messageAttributes: m.MessageAttributes,
                 md5OfBody: m.MD5OfBody,
                 eventSource: "aws:sqs",
-                eventSourceARN: queue.queueArn,
+                eventSourceARN: queue.arn,
                 awsRegion: this.options.region
             }))
         }
@@ -170,7 +171,7 @@ export default class SQSPoller {
 
         const failedMessageIds = new Set(
             handlerResults.map(r =>
-                r.batchItemFailures.map(f => f.itemIdentifier)
+                (r?.batchItemFailures || []).map(f => f.itemIdentifier)
             ).flat()
         )
         const failedMessages = messages.filter(m => failedMessageIds.has(m.MessageId))

@@ -1,8 +1,8 @@
 import * as Serverless from "serverless";
 import PluginConfiguration from "./PluginConfiguration";
 import {SLS_CUSTOM_OPTION} from "./constants";
-import {logDebug} from "./logging";
 import {SlsOfflineLambdaFunctionDefinition} from "./types";
+import {logDebug} from "./logging";
 
 export type StringKeyObject<T> = { [key: string]: T }
 
@@ -21,9 +21,9 @@ export const extractResourceNameFromArn = (
     arnExtract: (parts: string[]) => string,
     getNameFromResources: (key: string) => string,
 ) => (arn: any) => {
-    const getNameFromResourcesOrError = (resourceName: string) => {
+    const getNameFromResourcesOrError = (_arn: any, resourceName: string) => {
         if (!resourceName)
-            throw Error(`No resource defined with key: '${arn[0]}'. Add a resource with this key'`)
+            throw Error(`No resource defined with key: '${_arn}'. Add a resource with this key'`)
         return resourceName
     }
 
@@ -36,8 +36,9 @@ export const extractResourceNameFromArn = (
     } else if (Array.isArray(arn)) {
         if (arn.length === 2) {
             // An attribute reference to a resource defined within the stack. Check the defined resources
-            const resourceName = getNameFromResources(arn[0])
-            return getNameFromResourcesOrError(resourceName)
+            const _arn = arn[0];
+            const resourceName = getNameFromResources(_arn)
+            return getNameFromResourcesOrError(_arn, resourceName)
         }
     } else if (typeof arn === 'object') {
         // A function reference. Use the value as a key to the defined mappings
@@ -46,11 +47,13 @@ export const extractResourceNameFromArn = (
             const key = keys[0].trim();
             switch (key) {
                 case "Fn::GetAtt":
-                    const getAttResourceName = getNameFromResources(arn[key][0])
-                    return getNameFromResourcesOrError(getAttResourceName)
+                    const _arn = arn[key][0];
+                    const getAttResourceName = getNameFromResources(_arn)
+                    return getNameFromResourcesOrError(_arn, getAttResourceName)
                 case "Ref":
-                    const refResourceName = getNameFromResources(arn[key])
-                    return getNameFromResourcesOrError(refResourceName)
+                    const _arn2 = arn[key];
+                    const refResourceName = getNameFromResources(_arn2)
+                    return getNameFromResourcesOrError(_arn2, refResourceName)
                 case "Fn::ImportValue":
                     return arn[key]
             }

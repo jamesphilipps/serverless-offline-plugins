@@ -7,7 +7,7 @@ import {
     SqsEventMappingDefinition,
     StreamsEventMapping
 } from "../../StreamFunctionDefinitions";
-import {log, LOG_MARKER} from "../../logging";
+import {log, LOG_MARKER, logDebug} from "../../logging";
 import {getQueueNameFromArn} from "../utils";
 
 const bindHandlersToQueues = (
@@ -35,7 +35,9 @@ const bindHandlersToQueues = (
                 const sourceEvent = e.sourceEvent as SqsEventMappingDefinition;
                 const arn = sourceEvent.sqs.arn;
                 const arnStr = typeof arn === 'object' ? JSON.stringify(arn) : arn
-                const targetQueueName = getQueueNameFromArn(resources)(sourceEvent.sqs.arn)
+
+
+                const targetQueueName = getQueueNameFromArn(config.endpoint, resources)(sourceEvent.sqs.arn)
                 const originalQueueDef = queueMap[targetQueueName]
 
                 if (originalQueueDef) {

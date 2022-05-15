@@ -18,7 +18,7 @@ const serverlessConfiguration: () => Promise<AWS> = async () => {
         ],
         functions: {
             function1: {
-                handler: "./handler.handler",
+                handler: "src/handler.handler",
                 events: [
                     {
                         sqs: {arn: 'arn:aws:sqs:eu-west-1:444455556666:ConfigQueue'},
@@ -31,6 +31,9 @@ const serverlessConfiguration: () => Promise<AWS> = async () => {
                     },
                     {
                         sqs: {arn: { 'Fn::ImportValue': 'CrossStackQueueAlias' }},
+                    },
+                    {
+                        sqs: {arn: 'arn:aws:sqs:eu-west-1:4445555666:my-test-queue'}
                     },
                 ],
             },
@@ -46,17 +49,21 @@ const serverlessConfiguration: () => Promise<AWS> = async () => {
             }
         },
         custom: {
-            "serverless-offline": {
-                location: ".esbuild/.build",
-            },
-
             "serverless-offline-streams": {
                 sqs: {
                     enabled: true,
-                    host: "http://127.0.0.1:9324",
-                    createQueuesFromResources: true,
-                    removeExistingQueuesOnStart: true,
-                    purgeExistingQueuesOnStart: true,
+                    endpoint: "http://127.0.0.1:9324",
+
+                    localQueueManagement: {
+                        createFromResources: false,
+                        removeOnStart: true,
+                        purgeOnStart: true,
+                    },
+
+                    remoteQueueManagement: {
+                        purgeOnStart: false
+                    },
+
                     queues: [
                         {
                             name: 'ConfigQueue',
@@ -68,6 +75,13 @@ const serverlessConfiguration: () => Promise<AWS> = async () => {
                             aliases: ['CrossStackQueueAlias'],
                             visibilityTimeout: 5,
                             delaySeconds: 5
+                        },
+                        {
+                            name: 'RemoteQueue',
+                            aliases: ['my-test-queue'],
+                            remote: {
+                                queueUrl: 'https://sqs.eu-west-1.amazonaws.com/4445555666/my-test-queue'
+                            }
                         },
                     ],
                 },

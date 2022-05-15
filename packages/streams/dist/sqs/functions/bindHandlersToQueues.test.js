@@ -13,7 +13,14 @@ var __assign = (this && this.__assign) || function () {
 exports.__esModule = true;
 var bindHandlersToQueues_1 = require("./bindHandlersToQueues");
 var testHelpers_1 = require("../testHelpers");
+var aws_sdk_client_mock_1 = require("aws-sdk-client-mock");
+var client_sqs_1 = require("@aws-sdk/client-sqs");
 describe('bindHandlersToQueues', function () {
+    var sqsClientMock = (0, aws_sdk_client_mock_1.mockClient)(client_sqs_1.SQSClient);
+    var sqsClient = sqsClientMock;
+    beforeEach(function () {
+        sqsClientMock.reset();
+    });
     var createFunction = function (functionName, handler, queueArns) {
         var _a;
         return (_a = {},
@@ -31,9 +38,9 @@ describe('bindHandlersToQueues', function () {
     it('binds and merges handlers', function () {
         var functions = __assign(__assign({}, createFunction('func1', 'handler1', [arn('queue1'), arn('queue2')])), createFunction('func2', 'handler2', [arn('queue2'), arn('queue3')]));
         var queues = [
-            (0, testHelpers_1.activeQueueDef)({ name: 'queue1' }),
-            (0, testHelpers_1.activeQueueDef)({ name: 'queue2' }),
-            (0, testHelpers_1.activeQueueDef)({ name: 'queue3' }),
+            (0, testHelpers_1.activeQueueDef)(sqsClient, { name: 'queue1' }),
+            (0, testHelpers_1.activeQueueDef)(sqsClient, { name: 'queue2' }),
+            (0, testHelpers_1.activeQueueDef)(sqsClient, { name: 'queue3' }),
         ];
         var config = { errorOnMissingQueueDefinition: true };
         var boundQueues = (0, bindHandlersToQueues_1["default"])(config, {}, queues, functions);
@@ -45,7 +52,7 @@ describe('bindHandlersToQueues', function () {
     it('throws error if errorOnMissingQueueDefinition=true and queue missing', function () {
         var functions = __assign({}, createFunction('func1', 'handler1', [arn('queue2')]));
         var queues = [
-            (0, testHelpers_1.activeQueueDef)({ name: 'queue1' }),
+            (0, testHelpers_1.activeQueueDef)(sqsClient, { name: 'queue1' }),
         ];
         var config = { errorOnMissingQueueDefinition: true };
         expect(function () { return (0, bindHandlersToQueues_1["default"])(config, {}, queues, functions); })
@@ -54,7 +61,7 @@ describe('bindHandlersToQueues', function () {
     it('does not error if errorOnMissingQueueDefinition=false and queue missing', function () {
         var functions = __assign({}, createFunction('func1', 'handler1', [arn('queue2')]));
         var queues = [
-            (0, testHelpers_1.activeQueueDef)({ name: 'queue1' }),
+            (0, testHelpers_1.activeQueueDef)(sqsClient, { name: 'queue1' }),
         ];
         var config = { errorOnMissingQueueDefinition: false };
         var boundQueues = (0, bindHandlersToQueues_1["default"])(config, {}, queues, functions);
@@ -67,10 +74,19 @@ describe('bindHandlersToQueues', function () {
             k4: { name: "RES4" }
         };
         var queues = [
-            (0, testHelpers_1.activeQueueDef)({ name: 'queue1' }),
+            (0, testHelpers_1.activeQueueDef)(sqsClient, { name: 'queue1' }),
         ];
         var config = { errorOnMissingQueueDefinition: false };
         var boundQueues = (0, bindHandlersToQueues_1["default"])(config, {}, queues, functions);
         expect(boundQueues.length).toBe(0);
+    });
+    it('uses alias if name not matched', function () {
+        var functions = __assign({}, createFunction('func1', 'handler1', ['my-queue-alias']));
+        var queues = [
+            (0, testHelpers_1.activeQueueDef)(sqsClient, { name: 'MyQueue', aliases: ['my-queue-alias'] }),
+        ];
+        var config = { errorOnMissingQueueDefinition: true };
+        var boundQueues = (0, bindHandlersToQueues_1["default"])(config, {}, queues, functions);
+        expect(boundQueues.length).toBe(1);
     });
 });

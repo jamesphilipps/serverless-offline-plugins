@@ -12,6 +12,7 @@
     "noEmit": true
   },
   "include": [
+    "handler.ts",
     "serverless.ts"
   ],
   "references": [

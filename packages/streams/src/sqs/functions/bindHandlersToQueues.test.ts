@@ -4,9 +4,18 @@ import {ParsedFunctionDefinition} from "../../StreamFunctionDefinitions";
 import bindHandlersToQueues from "./bindHandlersToQueues";
 import {ActiveQueueDef} from "../QueueDef";
 import {activeQueueDef} from "../testHelpers";
+import {mockClient} from "aws-sdk-client-mock";
+import {SQSClient} from "@aws-sdk/client-sqs";
 
 
 describe('bindHandlersToQueues', () => {
+    const sqsClientMock = mockClient(SQSClient)
+    const sqsClient = sqsClientMock as unknown as SQSClient
+
+    beforeEach(() => {
+        sqsClientMock.reset()
+    })
+
 
     const createFunction = (functionName: string, handler: string, queueArns: string[]): StringKeyObject<ParsedFunctionDefinition> => ({
         [functionName]: {
@@ -29,9 +38,9 @@ describe('bindHandlersToQueues', () => {
         }
 
         const queues: ActiveQueueDef[] = [
-            activeQueueDef({name: 'queue1'}),
-            activeQueueDef({name: 'queue2'}),
-            activeQueueDef({name: 'queue3'}),
+            activeQueueDef(sqsClient, {name: 'queue1'}),
+            activeQueueDef(sqsClient, {name: 'queue2'}),
+            activeQueueDef(sqsClient, {name: 'queue3'}),
         ]
 
         const config: SqsPluginConfiguration = {errorOnMissingQueueDefinition: true}
@@ -50,7 +59,7 @@ describe('bindHandlersToQueues', () => {
         }
 
         const queues: ActiveQueueDef[] = [
-            activeQueueDef({name: 'queue1'}),
+            activeQueueDef(sqsClient, {name: 'queue1'}),
         ]
 
         const config: SqsPluginConfiguration = {errorOnMissingQueueDefinition: true}
@@ -64,7 +73,7 @@ describe('bindHandlersToQueues', () => {
         }
 
         const queues: ActiveQueueDef[] = [
-            activeQueueDef({name: 'queue1'}),
+            activeQueueDef(sqsClient, {name: 'queue1'}),
         ]
 
         const config: SqsPluginConfiguration = {errorOnMissingQueueDefinition: false}
@@ -84,12 +93,26 @@ describe('bindHandlersToQueues', () => {
 
 
         const queues: ActiveQueueDef[] = [
-            activeQueueDef({name: 'queue1'}),
+            activeQueueDef(sqsClient, {name: 'queue1'}),
         ]
 
         const config: SqsPluginConfiguration = {errorOnMissingQueueDefinition: false}
         const boundQueues = bindHandlersToQueues(config, {}, queues, functions)
         expect(boundQueues.length).toBe(0)
+    })
+
+    it('uses alias if name not matched', () => {
+        const functions: StringKeyObject<ParsedFunctionDefinition> = {
+            ...createFunction('func1', 'handler1', ['my-queue-alias']),
+        }
+
+        const queues: ActiveQueueDef[] = [
+            activeQueueDef(sqsClient, {name: 'MyQueue', aliases: ['my-queue-alias']}),
+        ]
+
+        const config: SqsPluginConfiguration = {errorOnMissingQueueDefinition: true}
+        const boundQueues = bindHandlersToQueues(config, {}, queues, functions)
+        expect(boundQueues.length).toBe(1)
     })
 })
 

@@ -14,9 +14,9 @@ var getHandlersAsLambdaFunctionDefinitions = function (serverless) {
 };
 exports.getHandlersAsLambdaFunctionDefinitions = getHandlersAsLambdaFunctionDefinitions;
 var extractResourceNameFromArn = function (arnExtract, getNameFromResources) { return function (arn) {
-    var getNameFromResourcesOrError = function (resourceName) {
+    var getNameFromResourcesOrError = function (_arn, resourceName) {
         if (!resourceName)
-            throw Error("No resource defined with key: '".concat(arn[0], "'. Add a resource with this key'"));
+            throw Error("No resource defined with key: '".concat(_arn, "'. Add a resource with this key'"));
         return resourceName;
     };
     var arnStr = typeof arn == 'string' ? arn : JSON.stringify(arn);
@@ -28,8 +28,9 @@ var extractResourceNameFromArn = function (arnExtract, getNameFromResources) { r
     else if (Array.isArray(arn)) {
         if (arn.length === 2) {
             // An attribute reference to a resource defined within the stack. Check the defined resources
-            var resourceName = getNameFromResources(arn[0]);
-            return getNameFromResourcesOrError(resourceName);
+            var _arn = arn[0];
+            var resourceName = getNameFromResources(_arn);
+            return getNameFromResourcesOrError(_arn, resourceName);
         }
     }
     else if (typeof arn === 'object') {
@@ -39,11 +40,13 @@ var extractResourceNameFromArn = function (arnExtract, getNameFromResources) { r
             var key = keys[0].trim();
             switch (key) {
                 case "Fn::GetAtt":
-                    var getAttResourceName = getNameFromResources(arn[key][0]);
-                    return getNameFromResourcesOrError(getAttResourceName);
+                    var _arn = arn[key][0];
+                    var getAttResourceName = getNameFromResources(_arn);
+                    return getNameFromResourcesOrError(_arn, getAttResourceName);
                 case "Ref":
-                    var refResourceName = getNameFromResources(arn[key]);
-                    return getNameFromResourcesOrError(refResourceName);
+                    var _arn2 = arn[key];
+                    var refResourceName = getNameFromResources(_arn2);
+                    return getNameFromResourcesOrError(_arn2, refResourceName);
                 case "Fn::ImportValue":
                     return arn[key];
             }
