@@ -76,3 +76,7 @@ export const keyMerge = <T>(
 }
 
 
+// TODO: test
+export const mapBy = <T>(vals: T[], keyFunc: (T) => string) => Object.fromEntries(
+    vals.map((v) => [keyFunc(v), v] as [string, T])
+)

@@ -36,13 +36,13 @@ export default class ServerlessOfflineStreamsPlugin {
         logDebug("Plugin Config", JSON.stringify(config, undefined, 2))
 
 
-        if (config?.dynamodb?.enabled) {
+        if (config.dynamodb.enabled) {
             logDebug("DynamoDB handler is enabled")
             this.activeHandlers.push(new DynamoDBStreamHandler(this.serverless, this.options))
         }
-        if (config?.sqs?.enabled) {
+        if (config.sqs.enabled) {
             logDebug("SQS handler is enabled")
-            this.activeHandlers.push(new SQStreamHandler(this.serverless, this.options, config))
+            this.activeHandlers.push(new SQStreamHandler(this.serverless, this.options, config.sqs))
         }
 
         return Promise.all(this.activeHandlers.map(h => h.start()))

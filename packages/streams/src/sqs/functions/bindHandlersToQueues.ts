@@ -1,17 +1,17 @@
-import {ActiveQueueDef, QueueDef} from "../QueueDef";
+import {ActiveQueueDef} from "../QueueDef";
 import mergeQueueDefinitions from "./mergeQueueDefinitions";
-import PluginConfiguration from "../../PluginConfiguration";
+import {SqsPluginConfiguration} from "../../PluginConfiguration";
 import {StringKeyObject} from "../../utils";
 import {
     ParsedFunctionDefinition,
     SqsEventMappingDefinition,
     StreamsEventMapping
 } from "../../StreamFunctionDefinitions";
-import {log, LOG_MARKER, logDebug} from "../../logging";
+import {log, LOG_MARKER} from "../../logging";
 import {getQueueNameFromArn} from "../utils";
 
 const bindHandlersToQueues = (
-    config: PluginConfiguration,
+    config: SqsPluginConfiguration,
     resources: StringKeyObject<any>,
     queues: ActiveQueueDef[],
     functionsWithSqsEvents: StringKeyObject<ParsedFunctionDefinition>
@@ -35,7 +35,7 @@ const bindHandlersToQueues = (
                 const sourceEvent = e.sourceEvent as SqsEventMappingDefinition;
                 const arn = sourceEvent.sqs.arn;
                 const arnStr = typeof arn === 'object' ? JSON.stringify(arn) : arn
-                const targetQueueName = getQueueNameFromArn(config, resources)(sourceEvent.sqs.arn)
+                const targetQueueName = getQueueNameFromArn(resources)(sourceEvent.sqs.arn)
                 const originalQueueDef = queueMap[targetQueueName]
 
                 if (originalQueueDef) {
@@ -43,7 +43,7 @@ const bindHandlersToQueues = (
                 } else {
                     // Warn the user or error if there isn't an active queue definition for this event binding
                     const message = `No queue definition with arn: '${arnStr}' found, but it was referenced by an event mapping in function: '${functionName}'`
-                    if (config.sqs.errorOnMissingQueueDefinition) throw Error(message)
+                    if (config.errorOnMissingQueueDefinition) throw Error(message)
                     else log(`${LOG_MARKER} WARNING: ${message}`)
                     return undefined
                 }

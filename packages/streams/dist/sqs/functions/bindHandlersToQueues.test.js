@@ -12,6 +12,7 @@ var __assign = (this && this.__assign) || function () {
 };
 exports.__esModule = true;
 var bindHandlersToQueues_1 = require("./bindHandlersToQueues");
+var testHelpers_1 = require("../testHelpers");
 describe('bindHandlersToQueues', function () {
     var createFunction = function (functionName, handler, queueArns) {
         var _a;
@@ -27,22 +28,14 @@ describe('bindHandlersToQueues', function () {
             _a);
     };
     var arn = function (queueName) { return "arn:aws:sqs:eu-west-1:444455556666:".concat(queueName); };
-    var queueDef = function (name) { return ({
-        name: name,
-        fifo: false,
-        handlerFunctions: [],
-        aliases: [],
-        queueUrl: 'http://localhost',
-        queueArn: arn(name)
-    }); };
     it('binds and merges handlers', function () {
         var functions = __assign(__assign({}, createFunction('func1', 'handler1', [arn('queue1'), arn('queue2')])), createFunction('func2', 'handler2', [arn('queue2'), arn('queue3')]));
         var queues = [
-            queueDef('queue1'),
-            queueDef('queue2'),
-            queueDef('queue3'),
+            (0, testHelpers_1.activeQueueDef)({ name: 'queue1' }),
+            (0, testHelpers_1.activeQueueDef)({ name: 'queue2' }),
+            (0, testHelpers_1.activeQueueDef)({ name: 'queue3' }),
         ];
-        var config = { sqs: { errorOnMissingQueueDefinition: true } };
+        var config = { errorOnMissingQueueDefinition: true };
         var boundQueues = (0, bindHandlersToQueues_1["default"])(config, {}, queues, functions);
         expect(boundQueues.length).toBe(3);
         expect(boundQueues[0]).toEqual(__assign(__assign({}, queues[0]), { handlerFunctions: ['func1'] }));
@@ -52,18 +45,18 @@ describe('bindHandlersToQueues', function () {
     it('throws error if errorOnMissingQueueDefinition=true and queue missing', function () {
         var functions = __assign({}, createFunction('func1', 'handler1', [arn('queue2')]));
         var queues = [
-            queueDef('queue1'),
+            (0, testHelpers_1.activeQueueDef)({ name: 'queue1' }),
         ];
-        var config = { sqs: { errorOnMissingQueueDefinition: true } };
+        var config = { errorOnMissingQueueDefinition: true };
         expect(function () { return (0, bindHandlersToQueues_1["default"])(config, {}, queues, functions); })
             .toThrow("No queue definition with arn: '".concat(arn('queue2'), "' found, but it was referenced by an event mapping in function: 'func1'"));
     });
     it('does not error if errorOnMissingQueueDefinition=false and queue missing', function () {
         var functions = __assign({}, createFunction('func1', 'handler1', [arn('queue2')]));
         var queues = [
-            queueDef('queue1'),
+            (0, testHelpers_1.activeQueueDef)({ name: 'queue1' }),
         ];
-        var config = { sqs: { errorOnMissingQueueDefinition: false } };
+        var config = { errorOnMissingQueueDefinition: false };
         var boundQueues = (0, bindHandlersToQueues_1["default"])(config, {}, queues, functions);
         expect(boundQueues.length).toBe(0);
     });
@@ -74,9 +67,9 @@ describe('bindHandlersToQueues', function () {
             k4: { name: "RES4" }
         };
         var queues = [
-            queueDef('queue1'),
+            (0, testHelpers_1.activeQueueDef)({ name: 'queue1' }),
         ];
-        var config = { sqs: { errorOnMissingQueueDefinition: false } };
+        var config = { errorOnMissingQueueDefinition: false };
         var boundQueues = (0, bindHandlersToQueues_1["default"])(config, {}, queues, functions);
         expect(boundQueues.length).toBe(0);
     });

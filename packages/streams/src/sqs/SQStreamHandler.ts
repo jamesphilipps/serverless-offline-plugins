@@ -5,13 +5,13 @@ import {StreamHandler} from "../StreamHandler";
 import SQSPoller from "./SQSPoller";
 import {ListQueuesCommand, SQSClient} from "@aws-sdk/client-sqs";
 import {getFunctionDefinitionsWithStreamsEvents} from "../StreamFunctionDefinitions";
-import getQueuesToCreate from "./functions/getQueuesToCreate";
-import setupQueues from "./functions/setupQueues";
-import PluginConfiguration from "../PluginConfiguration";
+import {SqsPluginConfiguration} from "../PluginConfiguration";
 import {getHandlersAsLambdaFunctionDefinitions, StringKeyObject} from "../utils";
-import getQueueDefinitionsFromConfig from "./functions/getQueueDefinitionsFromConfig";
 import bindHandlersToQueues from "./functions/bindHandlersToQueues";
-import getQueueDefinitionsFromResources from "./functions/getQueueDefinitionsFromResources";
+import getDefinedQueues from "./functions/getDefinedQueues";
+import deleteQueues from "./functions/deleteQueues";
+import purgeQueues from "./functions/purgeQueues";
+import createAndActivateQueues from "./functions/createAndActivateQueues";
 
 
 export class SQStreamHandler implements StreamHandler {
@@ -19,7 +19,7 @@ export class SQStreamHandler implements StreamHandler {
     private sqsClient: SQSClient
     private sqsPoller?: SQSPoller
 
-    constructor(private serverless: Serverless, private options: StringKeyObject<any>, private config: PluginConfiguration) {
+    constructor(private serverless: Serverless, private options: StringKeyObject<any>, private config: SqsPluginConfiguration) {
     }
 
     async start() {
@@ -31,21 +31,21 @@ export class SQStreamHandler implements StreamHandler {
         this.slsOfflineLambda = new Lambda(this.serverless, this.options)
         this.slsOfflineLambda.create(getHandlersAsLambdaFunctionDefinitions(this.serverless))
 
-        // Load queue definitions from defined resources
-        const resourceQueueDefinitions = getQueueDefinitionsFromResources(resources)
-        logDebug("resourceQueueDefinitions", resourceQueueDefinitions)
+        // Get defined queues from resources and config
+        const definedQueues = getDefinedQueues(this.config, resources)
+        logDebug("definedQueues", definedQueues)
 
-        // Load queue definitions from plugin configuration
-        const configQueueDefinitions = getQueueDefinitionsFromConfig(this.config)
-        logDebug("configQueueDefinitions", configQueueDefinitions)
+        if (this.config.removeExistingQueuesOnStart) {
+            await deleteQueues(this.sqsClient)
+        } else if (this.config.purgeExistingQueuesOnStart) {
+            await purgeQueues(this.sqsClient)
+            // TODO: purge remote queues
+        }
 
-        // Filter any queues that should not be created (either because the plugin is set to not create resource
-        // definitions, or a queue is marked as create=false
-        const queuesToCreate = getQueuesToCreate(this.config)(resourceQueueDefinitions, configQueueDefinitions)
-        logDebug("queuesToCreate", queuesToCreate)
-
-        // Activate the queues by removing, creating and purging as required
-        const activeQueues = await setupQueues(this.config, this.sqsClient)(queuesToCreate)
+        // Get "Active" definitions for all defined queues by creating them, or retrieving details of existing queues
+        // Queue definitions will only be activated if they are not excluded by config flags. An active definition
+        // includes the queue's URL and ARN
+        const activeQueues = await createAndActivateQueues(this.config, this.sqsClient, definedQueues)
         logDebug("activeQueues", activeQueues)
 
         // Bind the queues to event handler mappings
@@ -70,7 +70,7 @@ export class SQStreamHandler implements StreamHandler {
     }
 
     async _createSQSClient(): Promise<SQSClient> {
-        const endpoint = this.config?.sqs?.host;
+        const endpoint = this.config.host;
         if (!endpoint) {
             throw Error("No endpoint specified for Offline SQS Streams")
         }

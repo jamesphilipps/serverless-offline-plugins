@@ -42,12 +42,12 @@ var lambda_1 = require("serverless-offline/dist/lambda");
 var SQSPoller_1 = require("./SQSPoller");
 var client_sqs_1 = require("@aws-sdk/client-sqs");
 var StreamFunctionDefinitions_1 = require("../StreamFunctionDefinitions");
-var getQueuesToCreate_1 = require("./functions/getQueuesToCreate");
-var setupQueues_1 = require("./functions/setupQueues");
 var utils_1 = require("../utils");
-var getQueueDefinitionsFromConfig_1 = require("./functions/getQueueDefinitionsFromConfig");
 var bindHandlersToQueues_1 = require("./functions/bindHandlersToQueues");
-var getQueueDefinitionsFromResources_1 = require("./functions/getQueueDefinitionsFromResources");
+var getDefinedQueues_1 = require("./functions/getDefinedQueues");
+var deleteQueues_1 = require("./functions/deleteQueues");
+var purgeQueues_1 = require("./functions/purgeQueues");
+var createAndActivateQueues_1 = require("./functions/createAndActivateQueues");
 var SQStreamHandler = /** @class */ (function () {
     function SQStreamHandler(serverless, options, config) {
         this.serverless = serverless;
@@ -57,7 +57,7 @@ var SQStreamHandler = /** @class */ (function () {
     SQStreamHandler.prototype.start = function () {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function () {
-            var resources, _c, resourceQueueDefinitions, configQueueDefinitions, queuesToCreate, activeQueues, functionsWithSqsEvents, boundQueues;
+            var resources, _c, definedQueues, activeQueues, functionsWithSqsEvents, boundQueues;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -69,14 +69,23 @@ var SQStreamHandler = /** @class */ (function () {
                         _c.sqsClient = _d.sent();
                         this.slsOfflineLambda = new lambda_1["default"](this.serverless, this.options);
                         this.slsOfflineLambda.create((0, utils_1.getHandlersAsLambdaFunctionDefinitions)(this.serverless));
-                        resourceQueueDefinitions = (0, getQueueDefinitionsFromResources_1["default"])(resources);
-                        (0, logging_1.logDebug)("resourceQueueDefinitions", resourceQueueDefinitions);
-                        configQueueDefinitions = (0, getQueueDefinitionsFromConfig_1["default"])(this.config);
-                        (0, logging_1.logDebug)("configQueueDefinitions", configQueueDefinitions);
-                        queuesToCreate = (0, getQueuesToCreate_1["default"])(this.config)(resourceQueueDefinitions, configQueueDefinitions);
-                        (0, logging_1.logDebug)("queuesToCreate", queuesToCreate);
-                        return [4 /*yield*/, (0, setupQueues_1["default"])(this.config, this.sqsClient)(queuesToCreate)];
+                        definedQueues = (0, getDefinedQueues_1["default"])(this.config, resources);
+                        (0, logging_1.logDebug)("definedQueues", definedQueues);
+                        if (!this.config.removeExistingQueuesOnStart) return [3 /*break*/, 3];
+                        return [4 /*yield*/, (0, deleteQueues_1["default"])(this.sqsClient)];
                     case 2:
+                        _d.sent();
+                        return [3 /*break*/, 5];
+                    case 3:
+                        if (!this.config.purgeExistingQueuesOnStart) return [3 /*break*/, 5];
+                        return [4 /*yield*/, (0, purgeQueues_1["default"])(this.sqsClient)
+                            // TODO: purge remote queues
+                        ];
+                    case 4:
+                        _d.sent();
+                        _d.label = 5;
+                    case 5: return [4 /*yield*/, (0, createAndActivateQueues_1["default"])(this.config, this.sqsClient, definedQueues)];
+                    case 6:
                         activeQueues = _d.sent();
                         (0, logging_1.logDebug)("activeQueues", activeQueues);
                         functionsWithSqsEvents = (0, StreamFunctionDefinitions_1.getFunctionDefinitionsWithStreamsEvents)(this.serverless, 'SQS');
@@ -103,27 +112,27 @@ var SQStreamHandler = /** @class */ (function () {
         });
     };
     SQStreamHandler.prototype._createSQSClient = function () {
-        var _a, _b, _c, _d;
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function () {
             var endpoint, client, e_1;
-            return __generator(this, function (_e) {
-                switch (_e.label) {
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
-                        endpoint = (_b = (_a = this.config) === null || _a === void 0 ? void 0 : _a.sqs) === null || _b === void 0 ? void 0 : _b.host;
+                        endpoint = this.config.host;
                         if (!endpoint) {
                             throw Error("No endpoint specified for Offline SQS Streams");
                         }
                         client = new client_sqs_1.SQSClient({ region: this.options.region, endpoint: endpoint });
-                        _e.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _e.trys.push([1, 3, , 4]);
+                        _c.trys.push([1, 3, , 4]);
                         return [4 /*yield*/, client.send(new client_sqs_1.ListQueuesCommand({}))];
                     case 2:
-                        _e.sent();
+                        _c.sent();
                         return [3 /*break*/, 4];
                     case 3:
-                        e_1 = _e.sent();
-                        if (((_d = (_c = e_1.code) === null || _c === void 0 ? void 0 : _c.trim()) === null || _d === void 0 ? void 0 : _d.toUpperCase()) === 'ECONNREFUSED') {
+                        e_1 = _c.sent();
+                        if (((_b = (_a = e_1.code) === null || _a === void 0 ? void 0 : _a.trim()) === null || _b === void 0 ? void 0 : _b.toUpperCase()) === 'ECONNREFUSED') {
                             throw Error("An SQS API compatible queue is not available at '".concat(endpoint, "'. Did you forget to start your elasticmq instance?"));
                         }
                         throw e_1;

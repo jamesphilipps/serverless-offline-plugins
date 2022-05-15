@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.keyMerge = exports.extractResourceNameFromArn = exports.getHandlersAsLambdaFunctionDefinitions = exports.getPluginConfiguration = void 0;
+exports.mapBy = exports.keyMerge = exports.extractResourceNameFromArn = exports.getHandlersAsLambdaFunctionDefinitions = exports.getPluginConfiguration = void 0;
 var constants_1 = require("./constants");
 var getPluginConfiguration = function (serverless) { return serverless.service.custom[constants_1.SLS_CUSTOM_OPTION]; };
 exports.getPluginConfiguration = getPluginConfiguration;
@@ -62,3 +62,6 @@ var keyMerge = function (getKey, merge) { return function (data) {
     }, {})).map(function (entry) { return entry[1]; });
 }; };
 exports.keyMerge = keyMerge;
+// TODO: test
+var mapBy = function (vals, keyFunc) { return Object.fromEntries(vals.map(function (v) { return [keyFunc(v), v]; })); };
+exports.mapBy = mapBy;

@@ -1,8 +1,9 @@
-import PluginConfiguration from "../../PluginConfiguration";
+import {SqsPluginConfiguration} from "../../PluginConfiguration";
 import {StringKeyObject} from "../../utils";
 import {ParsedFunctionDefinition} from "../../StreamFunctionDefinitions";
 import bindHandlersToQueues from "./bindHandlersToQueues";
 import {ActiveQueueDef} from "../QueueDef";
+import {activeQueueDef} from "../testHelpers";
 
 
 describe('bindHandlersToQueues', () => {
@@ -20,14 +21,6 @@ describe('bindHandlersToQueues', () => {
 
     const arn = (queueName: string) => `arn:aws:sqs:eu-west-1:444455556666:${queueName}`
 
-    const queueDef = (name: string): ActiveQueueDef => ({
-        name,
-        fifo: false,
-        handlerFunctions: [],
-        aliases: [],
-        queueUrl: 'http://localhost',
-        queueArn: arn(name)
-    })
 
     it('binds and merges handlers', () => {
         const functions: StringKeyObject<ParsedFunctionDefinition> = {
@@ -36,12 +29,12 @@ describe('bindHandlersToQueues', () => {
         }
 
         const queues: ActiveQueueDef[] = [
-            queueDef('queue1'),
-            queueDef('queue2'),
-            queueDef('queue3'),
+            activeQueueDef({name: 'queue1'}),
+            activeQueueDef({name: 'queue2'}),
+            activeQueueDef({name: 'queue3'}),
         ]
 
-        const config: PluginConfiguration = {sqs: {errorOnMissingQueueDefinition: true}}
+        const config: SqsPluginConfiguration = {errorOnMissingQueueDefinition: true}
 
         const boundQueues = bindHandlersToQueues(config, {}, queues, functions)
 
@@ -57,10 +50,10 @@ describe('bindHandlersToQueues', () => {
         }
 
         const queues: ActiveQueueDef[] = [
-            queueDef('queue1'),
+            activeQueueDef({name: 'queue1'}),
         ]
 
-        const config: PluginConfiguration = {sqs: {errorOnMissingQueueDefinition: true}}
+        const config: SqsPluginConfiguration = {errorOnMissingQueueDefinition: true}
         expect(() => bindHandlersToQueues(config, {}, queues, functions))
             .toThrow(`No queue definition with arn: '${arn('queue2')}' found, but it was referenced by an event mapping in function: 'func1'`)
     })
@@ -71,10 +64,10 @@ describe('bindHandlersToQueues', () => {
         }
 
         const queues: ActiveQueueDef[] = [
-            queueDef('queue1'),
+            activeQueueDef({name: 'queue1'}),
         ]
 
-        const config: PluginConfiguration = {sqs: {errorOnMissingQueueDefinition: false}}
+        const config: SqsPluginConfiguration = {errorOnMissingQueueDefinition: false}
         const boundQueues = bindHandlersToQueues(config, {}, queues, functions)
         expect(boundQueues.length).toBe(0)
     })
@@ -91,10 +84,10 @@ describe('bindHandlersToQueues', () => {
 
 
         const queues: ActiveQueueDef[] = [
-            queueDef('queue1'),
+            activeQueueDef({name: 'queue1'}),
         ]
 
-        const config: PluginConfiguration = {sqs: {errorOnMissingQueueDefinition: false}}
+        const config: SqsPluginConfiguration = {errorOnMissingQueueDefinition: false}
         const boundQueues = bindHandlersToQueues(config, {}, queues, functions)
         expect(boundQueues.length).toBe(0)
     })

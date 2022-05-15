@@ -1,7 +1,7 @@
 import {ActiveQueueDef} from "./QueueDef";
 import {logDebug} from "../logging";
 import {DeleteMessageBatchCommand, Message, ReceiveMessageCommand, SQSClient} from "@aws-sdk/client-sqs";
-import PluginConfiguration from "../PluginConfiguration";
+import {SqsPluginConfiguration} from "../PluginConfiguration";
 import {StringKeyObject} from "../utils";
 
 interface HandlerInvocationResult {
@@ -41,7 +41,7 @@ export default class SQSPoller {
     private pollInterval: number
     private nextPoll: NodeJS.Timeout
 
-    constructor(private options: StringKeyObject<any>, private config: PluginConfiguration, private queueDefinitions: ActiveQueueDef[], private sqsClient: SQSClient, private lambda: any) {
+    constructor(private options: StringKeyObject<any>, private config: SqsPluginConfiguration, private queueDefinitions: ActiveQueueDef[], private sqsClient: SQSClient, private lambda: any) {
     }
 
     start() {
@@ -59,7 +59,7 @@ export default class SQSPoller {
 
     private _scheduleNextPoll(messagesRetrievedOnLastPoll: boolean) {
         const getNextPollInterval = (): number => {
-            const {pollConfig} = this.config.sqs
+            const {pollConfig} = this.config
             const {strategy, fixedIntervalMs, minIntervalMs, maxIntervalMs, backoffType, intervalStepMs} = pollConfig
 
             if (strategy === 'backoff') {
@@ -95,8 +95,7 @@ export default class SQSPoller {
     }
 
     private async _processMessages(queue: ActiveQueueDef): Promise<MessageProcessResult> {
-        const {pollConfig} = this.config.sqs
-
+        const {pollConfig} = this.config
         const noMessagesResult = {retrievedMessageCount: 0, successMessageCount: 0, failedMessageCount: 0}
 
         const processInternal = async () => {

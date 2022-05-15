@@ -24,6 +24,10 @@ var getDefaultPluginConfiguration = function () { return ({
 }); };
 exports.getDefaultPluginConfiguration = getDefaultPluginConfiguration;
 var validateConfig = function (config) {
+    if (!config.dynamodb || !config.sqs)
+        throw Error("Expected config field not set: dynamodb");
+    if (!config.sqs)
+        throw Error("Expected config field not set: sqs");
     var pollConfig = config.sqs.pollConfig;
     if (!new Set(['fixed-inteval', 'backoff']).has(pollConfig.strategy)) {
         throw Error("Unknown polling strategy: '".concat(pollConfig.strategy));

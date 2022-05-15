@@ -65,7 +65,7 @@ var SQSPoller = /** @class */ (function () {
     SQSPoller.prototype._scheduleNextPoll = function (messagesRetrievedOnLastPoll) {
         var _this = this;
         var getNextPollInterval = function () {
-            var pollConfig = _this.config.sqs.pollConfig;
+            var pollConfig = _this.config.pollConfig;
             var strategy = pollConfig.strategy, fixedIntervalMs = pollConfig.fixedIntervalMs, minIntervalMs = pollConfig.minIntervalMs, maxIntervalMs = pollConfig.maxIntervalMs, backoffType = pollConfig.backoffType, intervalStepMs = pollConfig.intervalStepMs;
             if (strategy === 'backoff') {
                 if (!_this.pollInterval || messagesRetrievedOnLastPoll) {
@@ -112,7 +112,7 @@ var SQSPoller = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        pollConfig = this.config.sqs.pollConfig;
+                        pollConfig = this.config.pollConfig;
                         noMessagesResult = { retrievedMessageCount: 0, successMessageCount: 0, failedMessageCount: 0 };
                         processInternal = function () { return __awaiter(_this, void 0, void 0, function () {
                             var response, messages, messageCount, invocationResult, successMessages, successMessageIds, failedMessages, failedMessageIds, results_1, _a;

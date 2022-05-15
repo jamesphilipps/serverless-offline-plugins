@@ -1,15 +1,7 @@
 "use strict";
 exports.__esModule = true;
 var mergeQueueDefinitions_1 = require("./mergeQueueDefinitions");
-var queueDef = function (name, handlerFunctions, aliases) {
-    if (aliases === void 0) { aliases = []; }
-    return ({
-        name: name,
-        aliases: aliases,
-        handlerFunctions: handlerFunctions,
-        fifo: name.endsWith('.fifo')
-    });
-};
+var testHelpers_1 = require("../testHelpers");
 describe('mergeQueueDefinitions', function () {
     var func = mergeQueueDefinitions_1["default"];
     it('handles empty queue definitions', function () {
@@ -17,9 +9,9 @@ describe('mergeQueueDefinitions', function () {
     });
     it('does not merge queue definitions with different names', function () {
         var defs = [
-            queueDef('queue1', ['f1']),
-            queueDef('queue2', ['f2']),
-            queueDef('queue3', ['f3']),
+            (0, testHelpers_1.queueDef)({ name: 'queue1', handlerFunctions: ['f1'] }),
+            (0, testHelpers_1.queueDef)({ name: 'queue2', handlerFunctions: ['f2'] }),
+            (0, testHelpers_1.queueDef)({ name: 'queue3', handlerFunctions: ['f3'] }),
         ];
         var merged = func(defs);
         expect(merged.length).toBe(3);
@@ -30,10 +22,10 @@ describe('mergeQueueDefinitions', function () {
     });
     it('merges queue definitions with the same names', function () {
         var defs = [
-            queueDef('queue1', ['f1'], ['ff1', 'ff1a']),
-            queueDef('queue1', ['f1'], ['ff1a', 'ff1b']),
-            queueDef('queue1', ['f2']),
-            queueDef('queue3', ['f3']),
+            (0, testHelpers_1.queueDef)({ name: 'queue1', handlerFunctions: ['f1'], aliases: ['ff1', 'ff1a'] }),
+            (0, testHelpers_1.queueDef)({ name: 'queue1', handlerFunctions: ['f1'], aliases: ['ff1a', 'ff1b'] }),
+            (0, testHelpers_1.queueDef)({ name: 'queue1', handlerFunctions: ['f2'] }),
+            (0, testHelpers_1.queueDef)({ name: 'queue3', handlerFunctions: ['f3'] }),
         ];
         var merged = func(defs);
         expect(merged.length).toBe(2);

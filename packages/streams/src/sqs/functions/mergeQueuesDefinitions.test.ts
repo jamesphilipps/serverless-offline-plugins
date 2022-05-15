@@ -1,12 +1,5 @@
-import {QueueDef} from "../QueueDef";
 import mergeQueueDefinitions from "./mergeQueueDefinitions";
-
-const queueDef = (name: string, handlerFunctions: string[], aliases: string[] = []): QueueDef => ({
-    name,
-    aliases,
-    handlerFunctions,
-    fifo: name.endsWith('.fifo'),
-})
+import {queueDef} from "../testHelpers";
 
 describe('mergeQueueDefinitions', () => {
     const func = mergeQueueDefinitions
@@ -16,9 +9,9 @@ describe('mergeQueueDefinitions', () => {
     })
     it('does not merge queue definitions with different names', () => {
         const defs = [
-            queueDef('queue1', ['f1']),
-            queueDef('queue2', ['f2']),
-            queueDef('queue3', ['f3']),
+            queueDef({name: 'queue1', handlerFunctions: ['f1']}),
+            queueDef({name: 'queue2', handlerFunctions: ['f2']}),
+            queueDef({name: 'queue3', handlerFunctions: ['f3']}),
         ]
 
         const merged = func(defs)
@@ -30,10 +23,10 @@ describe('mergeQueueDefinitions', () => {
     })
     it('merges queue definitions with the same names', () => {
         const defs = [
-            queueDef('queue1', ['f1'], ['ff1', 'ff1a']),
-            queueDef('queue1', ['f1'], ['ff1a', 'ff1b']),
-            queueDef('queue1', ['f2']),
-            queueDef('queue3', ['f3']),
+            queueDef({name: 'queue1', handlerFunctions: ['f1'], aliases: ['ff1', 'ff1a']}),
+            queueDef({name: 'queue1', handlerFunctions: ['f1'], aliases: ['ff1a', 'ff1b']}),
+            queueDef({name: 'queue1', handlerFunctions: ['f2']}),
+            queueDef({name: 'queue3', handlerFunctions: ['f3']}),
         ]
 
         const merged = func(defs)

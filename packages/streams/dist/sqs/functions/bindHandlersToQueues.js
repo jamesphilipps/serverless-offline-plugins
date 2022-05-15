@@ -42,7 +42,7 @@ var bindHandlersToQueues = function (config, resources, queues, functionsWithSqs
             var sourceEvent = e.sourceEvent;
             var arn = sourceEvent.sqs.arn;
             var arnStr = typeof arn === 'object' ? JSON.stringify(arn) : arn;
-            var targetQueueName = (0, utils_1.getQueueNameFromArn)(config, resources)(sourceEvent.sqs.arn);
+            var targetQueueName = (0, utils_1.getQueueNameFromArn)(resources)(sourceEvent.sqs.arn);
             var originalQueueDef = queueMap[targetQueueName];
             if (originalQueueDef) {
                 return __assign(__assign({}, originalQueueDef), { handlerFunctions: [functionName] });
@@ -50,7 +50,7 @@ var bindHandlersToQueues = function (config, resources, queues, functionsWithSqs
             else {
                 // Warn the user or error if there isn't an active queue definition for this event binding
                 var message = "No queue definition with arn: '".concat(arnStr, "' found, but it was referenced by an event mapping in function: '").concat(functionName, "'");
-                if (config.sqs.errorOnMissingQueueDefinition)
+                if (config.errorOnMissingQueueDefinition)
                     throw Error(message);
                 else
                     (0, logging_1.log)("".concat(logging_1.LOG_MARKER, " WARNING: ").concat(message));

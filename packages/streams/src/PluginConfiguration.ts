@@ -1,44 +1,46 @@
-import {DEFAULT_SQS_POLL_INTERVAL_MS} from "./constants";
-import {StringKeyObject} from "./utils";
-
 export interface ConfigurationQueueDef {
     name: string
     aliases?: string[]
     visibilityTimeout?: number
     delaySeconds?: number
+    queueUrl?: string
+}
+
+export interface DynamoPluginConfiguration {
+    // TODO: no config options for dynamodb streams
+    enabled?: boolean
+}
+
+export interface SqsPluginConfiguration {
+    enabled?: boolean
+    host?: string
+    createQueuesFromResources?: boolean
+    removeExistingQueuesOnStart?: boolean
+    purgeExistingQueuesOnStart?: boolean
+    errorOnMissingQueueDefinition?: boolean
+    queues?: ConfigurationQueueDef[]
+
+    pollConfig?: {
+        strategy: 'fixed-interval' | 'backoff'
+        drainQueues: boolean
+        messageBatchSize: number
+
+        // Fixed Interval Strategy
+        fixedIntervalMs?: number
+
+        // Backoff Strategy
+        backoffType?: 'double' | 'step'
+        //  Double Type
+        minIntervalMs?: number
+        maxIntervalMs?: number
+        //  Step Type
+        intervalStepMs?: number
+    }
 }
 
 export interface PluginConfiguration {
-    dynamodb?: {
-        // TODO: no config options for dynamodb streams
-        enabled?: boolean
-    }
-    sqs?: {
-        enabled?: boolean
-        host?: string
-        createQueuesFromResources?: boolean
-        removeExistingQueuesOnStart?: boolean
-        purgeExistingQueuesOnStart?: boolean
-        errorOnMissingQueueDefinition?: boolean
-        queues?: ConfigurationQueueDef[]
-
-        pollConfig?: {
-            strategy: 'fixed-interval' | 'backoff'
-            drainQueues: boolean
-            messageBatchSize: number
-
-            // Fixed Interval Strategy
-            fixedIntervalMs?: number
-
-            // Backoff Strategy
-            backoffType?: 'double' | 'step'
-            //  Double Type
-            minIntervalMs?: number
-            maxIntervalMs?: number
-            //  Step Type
-            intervalStepMs?: number
-        }
-    }
+    dynamodb?: DynamoPluginConfiguration
+    sqs?: SqsPluginConfiguration
 }
 
 export const getDefaultPluginConfiguration = (): PluginConfiguration => ({
@@ -63,7 +65,10 @@ export const getDefaultPluginConfiguration = (): PluginConfiguration => ({
     }
 })
 
-export const validateConfig = (config: PluginConfiguration): PluginConfiguration => {
+export const validateConfig = (config: PluginConfiguration): Required<PluginConfiguration> => {
+    if (!config.dynamodb || !config.sqs) throw Error("Expected config field not set: dynamodb")
+    if (!config.sqs) throw Error("Expected config field not set: sqs")
+
     const {pollConfig} = config.sqs
 
     if (!new Set(['fixed-inteval', 'backoff']).has(pollConfig.strategy)) {
@@ -73,7 +78,8 @@ export const validateConfig = (config: PluginConfiguration): PluginConfiguration
         throw Error(`Unknown polling backoffType: '${pollConfig.backoffType}`)
     }
 
-    return config
+
+    return config as Required<PluginConfiguration>
 }
 
 export default PluginConfiguration

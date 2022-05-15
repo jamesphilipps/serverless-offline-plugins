@@ -75,19 +75,18 @@ var ServerlessOfflineStreamsPlugin = /** @class */ (function () {
         };
     }
     ServerlessOfflineStreamsPlugin.prototype.start = function () {
-        var _a, _b;
         return __awaiter(this, void 0, void 0, function () {
             var config;
-            return __generator(this, function (_c) {
+            return __generator(this, function (_a) {
                 config = (0, PluginConfiguration_1.validateConfig)(objectMerge((0, PluginConfiguration_1.getDefaultPluginConfiguration)(), (0, utils_1.getPluginConfiguration)(this.serverless)));
                 (0, logging_1.logDebug)("Plugin Config", JSON.stringify(config, undefined, 2));
-                if ((_a = config === null || config === void 0 ? void 0 : config.dynamodb) === null || _a === void 0 ? void 0 : _a.enabled) {
+                if (config.dynamodb.enabled) {
                     (0, logging_1.logDebug)("DynamoDB handler is enabled");
                     this.activeHandlers.push(new DynamoDBStreamHandler_1.DynamoDBStreamHandler(this.serverless, this.options));
                 }
-                if ((_b = config === null || config === void 0 ? void 0 : config.sqs) === null || _b === void 0 ? void 0 : _b.enabled) {
+                if (config.sqs.enabled) {
                     (0, logging_1.logDebug)("SQS handler is enabled");
-                    this.activeHandlers.push(new SQStreamHandler_1.SQStreamHandler(this.serverless, this.options, config));
+                    this.activeHandlers.push(new SQStreamHandler_1.SQStreamHandler(this.serverless, this.options, config.sqs));
                 }
                 return [2 /*return*/, Promise.all(this.activeHandlers.map(function (h) { return h.start(); }))];
             });
