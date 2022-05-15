@@ -1,7 +1,7 @@
 {
   "name": "serverless-offline-streams",
   "description": "This plugin provides support for event driven systems using Serverless Offline",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "./dist/index.js",
   "license": "MIT",
   "keywords": [
