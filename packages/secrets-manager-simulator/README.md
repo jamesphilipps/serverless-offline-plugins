@@ -27,6 +27,7 @@ custom:
   secrets-manager-simulator:
       port: 8007 # Optional - port to listen on. Defaults to 8007
       enableDebugEndpoint: true # Optional. Defaults to true. If false, the /list endpoint will not be available 
+      secretsFile: /tmp/secrets.json # Optional. If specified, the plugin will persist secrets between runs to the specified json file 
       secrets: # Optional. List of key-value pairs to seed the secret manager with on startup
         - key: Secret1
           value: I-Am-A-Secret
