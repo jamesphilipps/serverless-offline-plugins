@@ -46,7 +46,9 @@ export default class ServerlessSecretsManagerSimulatorPlugin {
     async start() {
         log('Starting Secrets Manager Simulator..')
 
-        const secretsFile = this._getPluginOptions()?.secretsFile;
+        const secretsFile = pathRelativeToCwd(this._getPluginOptions()?.secretsFile);
+        logDebug("secretsFile: ", secretsFile)
+
         if (secretsFile) {
             const secretsFileDir = path.dirname(secretsFile)
             if (!fs.existsSync(secretsFileDir)) {
@@ -56,7 +58,7 @@ export default class ServerlessSecretsManagerSimulatorPlugin {
             if (fs.existsSync(secretsFile)) {
                 logDebug(`Loading secrets file: '${secretsFile}'..`)
                 const secrets = JSON.parse(fs.readFileSync(secretsFile).toString())
-                Object.entries(secrets).forEach(([key,value]) => {
+                Object.entries(secrets).forEach(([key, value]) => {
                     logDebug(`Adding secret: '${key}'`)
                     this.secretStore.add(key, value as any)
                 })
@@ -77,16 +79,11 @@ export default class ServerlessSecretsManagerSimulatorPlugin {
 
     async end() {
         log("Halting Secrets Manager Simulator..")
-        const secretsFile = this._getPluginOptions()?.secretsFile;
-        if (secretsFile) {
-            logDebug(`Saving secrets to ${secretsFile}`)
-            fs.writeFileSync(secretsFile, JSON.stringify(this.secretStore.all()))
-        }
     }
 
     _createSecretStore(): SecretStore {
         const region = this.serverless.service.provider.region
-        const store = new SecretStore()
+        const store = new SecretStore( pathRelativeToCwd(this._getPluginOptions()?.secretsFile))
 
         const secrets = this._getPluginOptions()?.secrets as SecretSeed[]
         if (secrets) {
@@ -112,6 +109,11 @@ const mergeOptions = (serverless: Serverless, cliOptions: StringKeyObject<any>) 
     }
 
     return {...{[SLS_CUSTOM_OPTION]: customOptions}, ...extraOptions, ...cliOptions}
+}
+
+const pathRelativeToCwd = (p: string) => {
+    if (p.startsWith("/")) return p
+    return path.resolve(`${process.cwd()}/${p}`)
 }
 
 module.exports = ServerlessSecretsManagerSimulatorPlugin
