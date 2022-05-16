@@ -17,7 +17,6 @@ const handlers: StringKeyObject<Handler> = {
 export const createRequestListener = (context: Context) => (req: IncomingMessage, res: ServerResponse) => {
     const {url, method, headers} = req
     logDebug("SSMS: Received request", {url, method, headers})
-    console.log("SSMS: Received request", {url, method, headers})
 
     const target = req.headers['x-amz-target'] as string
     try {

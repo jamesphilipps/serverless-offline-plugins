@@ -7,6 +7,8 @@ import {SecretStore} from "./store";
 import Context from "./Context";
 import {Server} from "http";
 import {createSecret} from "./Secret";
+import * as fs from "fs";
+import * as path from "path";
 
 const SLS_CUSTOM_OPTION = 'secrets-manager-simulator';
 const DEFAULT_PORT = 8007
@@ -30,7 +32,7 @@ export default class ServerlessSecretsManagerSimulatorPlugin {
         setLog((...args: [string, string, LogOptions]) => serverless.cli.log(...args))
 
         this.options = mergeOptions(serverless, cliOptions)
-        logDebug('options:', JSON.stringify(this.options || {}, undefined,2));
+        logDebug('options:', JSON.stringify(this.options || {}, undefined, 2));
 
         this.hooks = {
             "offline:start:init": this.start.bind(this),
@@ -43,6 +45,24 @@ export default class ServerlessSecretsManagerSimulatorPlugin {
 
     async start() {
         log('Starting Secrets Manager Simulator..')
+
+        const secretsFile = this._getPluginOptions()?.secretsFile;
+        if (secretsFile) {
+            const secretsFileDir = path.dirname(secretsFile)
+            if (!fs.existsSync(secretsFileDir)) {
+                logDebug(`Creating secretsFileDir: '${secretsFileDir}'..`)
+                fs.mkdirSync(secretsFileDir)
+            }
+            if (fs.existsSync(secretsFile)) {
+                logDebug(`Loading secrets file: '${secretsFile}'..`)
+                const secrets = JSON.parse(fs.readFileSync(secretsFile).toString())
+                Object.entries(secrets).forEach(([key,value]) => {
+                    logDebug(`Adding secret: '${key}'`)
+                    this.secretStore.add(key, value as any)
+                })
+            }
+        }
+
         const enableDebugEndpoint = this._getPluginOptions()?.enableDebugEndpoint;
         const context: Context = {
             secretStore: this.secretStore,
@@ -57,6 +77,11 @@ export default class ServerlessSecretsManagerSimulatorPlugin {
 
     async end() {
         log("Halting Secrets Manager Simulator..")
+        const secretsFile = this._getPluginOptions()?.secretsFile;
+        if (secretsFile) {
+            logDebug(`Saving secrets to ${secretsFile}`)
+            fs.writeFileSync(secretsFile, JSON.stringify(this.secretStore.all()))
+        }
     }
 
     _createSecretStore(): SecretStore {

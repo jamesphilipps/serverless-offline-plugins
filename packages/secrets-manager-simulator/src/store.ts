@@ -20,7 +20,7 @@ export class SecretStore {
         return secret
     }
 
-    all(): Secret[] {
-        return Object.values(this.secrets)
+    all(): StringKeyObject<Secret> {
+        return this.secrets
     }
 }
