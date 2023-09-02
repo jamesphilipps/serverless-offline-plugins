@@ -3,7 +3,7 @@ import {AWS} from "@serverless/typescript"
 const serverlessConfiguration: () => Promise<AWS> = async () => {
     return {
         service: "ServerlessOfflineStreamsPluginExample",
-        frameworkVersion: "2",
+        frameworkVersion: "3",
 
         provider: {
             name: "aws",
