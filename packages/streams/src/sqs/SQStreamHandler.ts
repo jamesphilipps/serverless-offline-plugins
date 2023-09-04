@@ -1,6 +1,6 @@
 import {log, logDebug} from "../logging";
 import * as Serverless from "serverless";
-import {default as Lambda} from 'serverless-offline/dist/lambda'
+import {lambda as Lambda} from 'serverless-offline'
 import {StreamHandler} from "../StreamHandler";
 import SQSPoller from "./SQSPoller";
 import {getFunctionDefinitionsWithStreamsEvents} from "../StreamFunctionDefinitions";

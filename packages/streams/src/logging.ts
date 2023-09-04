@@ -1,4 +1,4 @@
-export {default as log, setLog} from "serverless-offline/dist/serverlessLog"
+export { log, setLog} from "serverless-offline"
 
 export const LOG_MARKER = '[sls-offline-streams]'
 

@@ -2,7 +2,7 @@ import {IncomingMessage, ServerResponse} from "http";
 import {Handler} from "./Handler";
 import {readRequestBody, writeResponse} from "../server";
 import Context from "../Context";
-import {logDebug} from "../logging";
+import {getLogger} from "../logging";
 
 
 const GetSecretValue: Handler = (context: Context) => async (req: IncomingMessage, res: ServerResponse) => {
@@ -17,7 +17,7 @@ const GetSecretValue: Handler = (context: Context) => async (req: IncomingMessag
         const response = {ARN, CreatedDate, Name, SecretBinary, SecretString, VersionId, VersionStages}
         writeResponse(res, 200, JSON.stringify(response))
     } else {
-        logDebug(`No secret found with id: ${SecretId}`)
+        getLogger().debug(`No secret found with id: ${SecretId}`)
         writeResponse(res, 400)
     }
 }

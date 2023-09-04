@@ -2,7 +2,7 @@ import {log} from "../logging";
 import DynamoDBStreamsController from "./DynamoDBStreamsController";
 import { getFunctionsWithStreamEvents} from "./support";
 import * as Serverless from "serverless";
-import {default as Lambda} from 'serverless-offline/dist/lambda'
+import { lambda as Lambda} from 'serverless-offline'
 import {StreamHandler} from "../StreamHandler";
 import {StringKeyObject} from "../utils";
 import {FunctionDefinition} from "../types";

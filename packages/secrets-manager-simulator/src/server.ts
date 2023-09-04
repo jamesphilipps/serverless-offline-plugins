@@ -1,12 +1,12 @@
 import * as http from "http";
 import {IncomingMessage, RequestListener, Server, ServerResponse} from "http";
-import {logDebug} from "./logging";
 import {StringKeyObject} from "./types";
 import {Handler} from "./handlers/Handler";
 import CreateSecret from "./handlers/CreateSecret";
 import Context from "./Context";
 import GetSecretValue from "./handlers/GetSecretValue";
 import DeleteSecret from "./handlers/DeleteSecret";
+import {getLogger} from "./logging";
 
 const handlers: StringKeyObject<Handler> = {
     CreateSecret,
@@ -16,7 +16,7 @@ const handlers: StringKeyObject<Handler> = {
 
 export const createRequestListener = (context: Context) => (req: IncomingMessage, res: ServerResponse) => {
     const {url, method, headers} = req
-    logDebug("SSMS: Received request", {url, method, headers})
+    getLogger().debug("SSMS: Received request" + {url, method, headers})
 
     const target = req.headers['x-amz-target'] as string
     try {
