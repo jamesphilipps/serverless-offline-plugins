@@ -34,12 +34,12 @@ export default class DynamoDBStreamsController {
                     .map(async (event) => {
                         getLogger().debug("Creating stream for event" + event)
                         const tableName = this._extractTableNameFromARN(event.stream.arn)
-                        const {Table: {LatestStreamArn}} = await this._describeTable(tableName)
+                        const {Table: {LatestStreamArn}} = await this._describeTable(tableName) as any
                         const streamDesc = await this.dynamodbStreamsClient.describeStream({StreamArn: LatestStreamArn}).promise()
 
-                        const shards = streamDesc.StreamDescription.Shards
+                        const shards = streamDesc.StreamDescription?.Shards
                         const shardStreams = shards
-                            .map((shard) => this._createStream(functionKey, LatestStreamArn, shard.ShardId, event))
+                            ?.map((shard) => this._createStream(functionKey, LatestStreamArn, shard.ShardId!, event))
                         this.readableStreams.push(shardStreams)
                     })
             })
@@ -73,7 +73,7 @@ export default class DynamoDBStreamsController {
                 return TableName
             } else {
                 // Probably an output reference. Use directly as a key to the custom resources table
-                const tableName = this.options?.tableNames?.[arn]
+                const tableName = this.options?.['tableNames']?.[arn]
                 if (!tableName)
                     throw Error(`No table name mapping entry for stream arn: '${arn}'. Add a mapping at 'custom.${SLS_CUSTOM_OPTION}.tableNames.${arn}'`)
                 return tableName
@@ -89,7 +89,7 @@ export default class DynamoDBStreamsController {
         throw Error(`Cannot resolve arn: ${arn} to a table name`)
     }
 
-    private _createStream(functionKey: string, LatestStreamArn: string, shardId: string, event: DynamoDbStreamsEventDefinition): DynamodbStreamsReadable {
+    private _createStream(functionKey: string, LatestStreamArn: string, shardId: string, event: DynamoDbStreamsEventDefinition) {
         const {region} = this.options
         const {batchSize, arn} = event.stream
 

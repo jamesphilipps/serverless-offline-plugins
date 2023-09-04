@@ -1,5 +1,5 @@
 import * as Serverless from "serverless";
-import {lambda as Lambda} from 'serverless-offline'
+import type {Lambda as LambdaType} from 'serverless-offline/lambda';
 import {StreamHandler} from "../StreamHandler";
 import SQSPoller from "./SQSPoller";
 import {getFunctionDefinitionsWithStreamsEvents} from "../StreamFunctionDefinitions";
@@ -15,30 +15,33 @@ import {getLogger} from "../logging";
 
 
 export class SQStreamHandler implements StreamHandler {
-    private slsOfflineLambda?: typeof Lambda
+    private slsOfflineLambda?: LambdaType
     private sqsPoller?: SQSPoller
 
     constructor(private serverless: Serverless, private options: StringKeyObject<any>, private config: SqsPluginConfiguration) {
     }
 
     async start() {
+        const {default: Lambda} = (await import("serverless-offline/lambda") as any);
+
         const {endpoint} = this.config
         const {stage, region} = this.options
         const resources = this.serverless.service?.resources?.Resources
 
         getLogger().info(`Starting Offline SQS Streams: ${stage}/${region}..`)
-        const localSqsClient = await createSQSClient(region, endpoint)
+        const localSqsClient = await createSQSClient(region, endpoint!)
 
-        this.slsOfflineLambda = new Lambda(this.serverless, this.options)
-        this.slsOfflineLambda.create(getHandlersAsLambdaFunctionDefinitions(this.serverless))
+        const slsOfflineLambda = new Lambda(this.serverless, this.options)
+        slsOfflineLambda.create(getHandlersAsLambdaFunctionDefinitions(this.serverless));
+        this.slsOfflineLambda = slsOfflineLambda
 
         // Get defined queues from resources and config
         const definedQueues = getDefinedQueues(this.config, resources)
         getLogger().debug("definedQueues" + definedQueues)
 
-        if (this.config.localQueueManagement.removeOnStart) {
+        if (this.config.localQueueManagement?.removeOnStart) {
             await deleteQueues(localSqsClient)
-        } else if (this.config.localQueueManagement.purgeOnStart) {
+        } else if (this.config.localQueueManagement?.purgeOnStart) {
             await purgeQueues(localSqsClient)
         }
 

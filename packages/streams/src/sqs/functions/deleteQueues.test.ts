@@ -11,7 +11,7 @@ describe('deleteQueues', () => {
     })
 
     it('does nothing if no queues', async () => {
-        const QueueUrls = []
+        const QueueUrls: string[] = []
         sqsClientMock.on(ListQueuesCommand).resolves({QueueUrls})
         await deleteQueues(sqsClient)
 

@@ -37,7 +37,7 @@ const bindHandlersToQueues = (
                 const arnStr = typeof arn === 'object' ? JSON.stringify(arn) : arn
 
 
-                const targetQueueName = getQueueNameFromArn(config.endpoint, resources)(sourceEvent.sqs.arn)
+                const targetQueueName = getQueueNameFromArn(config.endpoint!, resources)(sourceEvent.sqs.arn)
                 const originalQueueDef = queueMap[targetQueueName]
 
                 if (originalQueueDef) {
@@ -50,7 +50,7 @@ const bindHandlersToQueues = (
                     return undefined
                 }
             }).filter(v => !!v)
-        })
+        }) as ActiveQueueDef[]
     )
 
 }

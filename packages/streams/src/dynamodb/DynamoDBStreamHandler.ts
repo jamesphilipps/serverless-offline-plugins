@@ -1,7 +1,7 @@
 import DynamoDBStreamsController from "./DynamoDBStreamsController";
-import {getFunctionsWithStreamEvents} from "./support";
+import {FunctionWithStreamEvents, getFunctionsWithStreamEvents} from "./support";
 import * as Serverless from "serverless";
-import {lambda as Lambda} from 'serverless-offline'
+import {Lambda as LambdaType} from 'serverless-offline/lambda'
 import {StreamHandler} from "../StreamHandler";
 import {StringKeyObject} from "../utils";
 import {FunctionDefinition} from "../types";
@@ -9,16 +9,18 @@ import {getLogger} from "../logging";
 
 
 export class DynamoDBStreamHandler implements StreamHandler {
-    private slsOfflineLambda?: typeof Lambda
+    private slsOfflineLambda?: LambdaType
     private streamsController?: DynamoDBStreamsController
 
     constructor(private serverless: Serverless, private options: StringKeyObject<any>) {
     }
 
     async start() {
+        const {default: Lambda} = (await import("serverless-offline/lambda") as any);
+
         const {service} = this.serverless
 
-        getLogger().info(`Starting Offline Dynamodb Streams: ${this.options.stage}/${this.options.region}..`)
+        getLogger().info(`Starting Offline Dynamodb Streams: ${this.options['stage']}/${this.options['region']}..`)
         this.slsOfflineLambda = new Lambda(this.serverless, this.options)
         this.streamsController = new DynamoDBStreamsController(this.serverless, this.slsOfflineLambda, this.options)
 
@@ -26,8 +28,8 @@ export class DynamoDBStreamHandler implements StreamHandler {
         const functionsWithStreamEvents = getFunctionsWithStreamEvents((functionKey: string) => functions[functionKey])(service.getAllFunctions())
 
         // Create lambdas
-        this.slsOfflineLambda.create(functionsWithStreamEvents)
-        await this.streamsController.start(functionsWithStreamEvents)
+        this.slsOfflineLambda?.create(functionsWithStreamEvents)
+        await this.streamsController.start(functionsWithStreamEvents as unknown as FunctionWithStreamEvents[])
         getLogger().info(`Started Offline Dynamodb Streams. Created ${this.streamsController.count()} streams`)
     }
 

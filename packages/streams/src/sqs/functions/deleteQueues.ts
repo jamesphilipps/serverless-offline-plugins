@@ -9,7 +9,7 @@ const deleteQueues = async (sqsClient: SQSClient) => {
     if (existingQueueCount > 0) {
         getLogger().debug("Removing existing queues..")
         await Promise.all(
-            existingQueues.QueueUrls.map((QueueUrl) => sqsClient.send(new DeleteQueueCommand({QueueUrl})))
+            existingQueues.QueueUrls?.map((QueueUrl) => sqsClient.send(new DeleteQueueCommand({QueueUrl}))) || []
         )
     }
 }

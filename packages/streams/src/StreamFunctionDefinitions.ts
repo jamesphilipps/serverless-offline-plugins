@@ -65,15 +65,15 @@ export const getFunctionDefinitionsWithStreamsEvents = (serverless: Serverless, 
         sourceEvent: {
             ...event,
             stream: {
-                ...event.stream,
-                filterPatterns: event.filterPatterns ? parseFilterPatterns(functionName, eventIndex) : undefined
+                ...event['stream'],
+                filterPatterns: event['filterPatterns'] ? parseFilterPatterns(functionName, eventIndex) : undefined
             }
         }
     })
 
     const toStreamsEventMapping = (functionName: string, event: StringKeyObject<any>, eventIndex: number): StreamsEventMapping => {
-        if (event.sqs) return toSqsStreamsEventMapping(event)
-        if (event.stream) return toDynamoStreamsEventMapping(functionName, event, eventIndex)
+        if (event['sqs']) return toSqsStreamsEventMapping(event)
+        if (event['stream']) return toDynamoStreamsEventMapping(functionName, event, eventIndex)
         throw Error("Unable to parse streams event mapping")
     }
 

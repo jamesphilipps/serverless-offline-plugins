@@ -85,11 +85,11 @@ export const validateConfig = (config: PluginConfiguration): Required<PluginConf
 
     const {pollConfig} = config.sqs
 
-    if (!new Set(['fixed-inteval', 'backoff']).has(pollConfig.strategy)) {
-        throw Error(`Unknown polling strategy: '${pollConfig.strategy}`)
+    if (!new Set(['fixed-inteval', 'backoff']).has(pollConfig?.strategy!)) {
+        throw Error(`Unknown polling strategy: '${pollConfig?.strategy}`)
     }
-    if (!new Set(['double', 'step']).has(pollConfig.backoffType)) {
-        throw Error(`Unknown polling backoffType: '${pollConfig.backoffType}`)
+    if (!new Set(['double', 'step']).has(pollConfig?.backoffType!)) {
+        throw Error(`Unknown polling backoffType: '${pollConfig?.backoffType!}`)
     }
 
 

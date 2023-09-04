@@ -28,7 +28,7 @@ const getQueueDefinitionsFromConfig = (config: SqsPluginConfiguration): QueueDef
         targetType: queue.remote?.queueUrl ? 'REMOTE' : 'LOCAL',
         url: queue.remote?.queueUrl,
         visibilityTimeout: queue.visibilityTimeout,
-    }))
+    })) as QueueDef[]
 }
 
 export const getQueueDefinitionsFromResources = (localEndpoint: string, resources: StringKeyObject<any>): QueueDef[] => {
@@ -51,7 +51,7 @@ export const getQueueDefinitionsFromResources = (localEndpoint: string, resource
 
 const getDefinedQueues = (config: SqsPluginConfiguration, resources: StringKeyObject<any>): QueueDef[] => {
     const configQueues = getQueueDefinitionsFromConfig(config)
-    const resourcesQueues = getQueueDefinitionsFromResources(config.endpoint, resources)
+    const resourcesQueues = getQueueDefinitionsFromResources(config.endpoint!, resources)
     const allQueues = configQueues.concat(resourcesQueues);
     return mergeQueueDefinitions(allQueues)
 }

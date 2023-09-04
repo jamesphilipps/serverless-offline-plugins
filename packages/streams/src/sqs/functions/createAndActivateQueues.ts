@@ -19,9 +19,9 @@ const getQueueDetails = async (sqsClient: SQSClient, QueueUrl: string): Promise<
         AttributeNames: ['QueueArn']
     }))
     return {
-        name: getQueueNameFromArnString(response.Attributes.QueueArn),
+        name: getQueueNameFromArnString(response.Attributes?.['QueueArn']!),
         url: QueueUrl,
-        arn: response.Attributes.QueueArn
+        arn: response.Attributes?.['QueueArn']!
     }
 }
 
@@ -40,12 +40,12 @@ const createQueues = async (sqsClient: SQSClient, queueDefinitions: QueueDef[]):
             const createResult = await sqsClient.send(new CreateQueueCommand({
                 QueueName: queue.name,
                 Attributes: {
-                    VisibilityTimeout: queue.visibilityTimeout?.toString(),
-                    DelaySeconds: queue.delaySeconds?.toString(),
+                    ...(queue.visibilityTimeout ? {VisibilityTimeout: queue.visibilityTimeout.toString()} : {}),
+                    ...(queue.delaySeconds ? {DelaySeconds: queue.delaySeconds.toString()} : {}),
                     FifoQueue: queue.fifo || false as any
                 }
             }))
-            const details = await getQueueDetails(sqsClient, createResult.QueueUrl)
+            const details = await getQueueDetails(sqsClient, createResult.QueueUrl!)
             return {...queue, ...details, sqsClient}
         })
     )
@@ -53,7 +53,7 @@ const createQueues = async (sqsClient: SQSClient, queueDefinitions: QueueDef[]):
 
 const createAndActivateLocalQueues = async (config: SqsPluginConfiguration, sqsClient: SQSClient, definedQueues: QueueDef[]): Promise<ActiveQueueDef[]> => {
     const queuesToActivate = definedQueues
-        .filter(queue => config.localQueueManagement.createFromResources || queue.source !== 'RESOURCES') // Filter resource queues if flag set
+        .filter(queue => config.localQueueManagement?.createFromResources || queue.source !== 'RESOURCES') // Filter resource queues if flag set
 
     getLogger().debug("will attempt to active the following queues" + queuesToActivate)
 
@@ -64,7 +64,7 @@ const createAndActivateLocalQueues = async (config: SqsPluginConfiguration, sqsC
     getLogger().debug("The following queues already exist in the mq instance:" + Array.from(existingQueueNames))
 
     // Create any queues which are defined but do not currently exist
-    const queuesToCreate = config.localQueueManagement.createFromResources ?
+    const queuesToCreate = config.localQueueManagement?.createFromResources ?
         queuesToActivate
             .filter((queue) => !existingQueueNames.has(queue.name)) // Doesn't exist
             .filter((queue) => queue.create !== false) : // Not excluded from creation
@@ -101,7 +101,7 @@ const activateRemoteQueues = async (createSQSClient: CreateSQSClientFunc, config
                     throw Error(`Invalid remote endpoint for remote queue: '${queue.endpoint}'. Remote endpoints should be in the form: "http(s)://sqs.REGION.amazonaws.com"`)
                 }
                 const sqsClient = await createSQSClient(endpointMatch[1], queue.endpoint)
-                const queueDetails = await getQueueDetails(sqsClient, queue.url)
+                const queueDetails = await getQueueDetails(sqsClient, queue.url!)
 
                 return {
                     sqsClient,

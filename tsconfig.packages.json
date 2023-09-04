@@ -1,24 +1,33 @@
 {
-  "target": "es5",
   "compilerOptions": {
-    "outDir": "dist"
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node16",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": false,
+    "importHelpers": true,
+    "target": "ES2018",
+    "module": "NodeNext",
+    "lib": [
+      "es2017",
+      "ES2021.String",
+      "dom"
+    ],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "resolveJsonModule": true,
+    "outDir": "./dist",
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
   },
-  "lib": [
-    "dom",
-    "dom.iterable",
-    "esnext"
-  ],
-  "allowJs": true,
-  "skipLibCheck": true,
-  "esModuleInterop": true,
-  "allowSyntheticDefaultImports": true,
-  "strict": true,
-  "forceConsistentCasingInFileNames": true,
-  "noFallthroughCasesInSwitch": true,
-  "module": "commonjs",
-  "moduleResolution": "node",
-  "resolveJsonModule": true,
-  "isolatedModules": true,
   "include": [
     "packages/streams/src"
   ]

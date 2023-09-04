@@ -3,8 +3,8 @@ import {FilterPatterns, NumericRange, NumericSingle} from "./filterGrammar";
 import {DynamoScalar, DynamoStreamsEventFilters} from "../dynamoStreamsEventTypes";
 
 describe("allowEvent", () => {
-    it( "ORS multiple rules" , ()=>{
-        const patterns = [{eventName: ['FOO']},{eventName: ['BAR']}]
+    it("ORS multiple rules", () => {
+        const patterns = [{eventName: ['FOO']}, {eventName: ['BAR']}]
         expect(allowEvent(patterns, {eventName: 'FOO'})).toBeTruthy()
         expect(allowEvent(patterns, {eventName: 'BAR'})).toBeTruthy()
     })
@@ -286,7 +286,7 @@ describe("allowEvent", () => {
                 ] as [boolean, DynamoScalar | undefined][]
                 testData.forEach(([patternData, eventData]) => {
                     const pattern: FilterPatterns = {dynamodb: {Keys: {prop1: [{exists: patternData}]}}}
-                    const event: DynamoStreamsEventFilters = {dynamodb: {Keys: {prop1: eventData}}}
+                    const event: DynamoStreamsEventFilters = {dynamodb: {Keys: {prop1: eventData as any}}}
                     expect(allowEvent([pattern], event)).toBeTruthy()
                 })
             })
@@ -298,7 +298,7 @@ describe("allowEvent", () => {
                 ] as [boolean, DynamoScalar | undefined][]
                 testData.forEach(([patternData, eventData]) => {
                     const pattern: FilterPatterns = {dynamodb: {Keys: {prop1: [{exists: patternData}]}}}
-                    const event: DynamoStreamsEventFilters = {dynamodb: {Keys: {prop1: eventData}}}
+                    const event: DynamoStreamsEventFilters = {dynamodb: {Keys: {prop1: eventData as any}}}
                     expect(allowEvent([pattern], event)).toBeFalsy()
                 })
             })

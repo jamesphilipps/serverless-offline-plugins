@@ -1,13 +1,12 @@
 import * as Serverless from "serverless"
-import {LogOptions} from "serverless"
 import {SLS_CUSTOM_OPTION, SLS_OFFLINE_OPTION} from "./constants";
 import {StreamHandler} from "./StreamHandler";
 import {SQStreamHandler} from "./sqs/SQStreamHandler";
 import {DynamoDBStreamHandler} from "./dynamodb/DynamoDBStreamHandler";
 import {getDefaultPluginConfiguration, validateConfig} from "./PluginConfiguration";
 import {getPluginConfiguration, StringKeyObject} from "./utils";
-import objectMerge = require('lodash.merge');
 import {getLogger, setLog} from "./logging";
+import objectMerge = require('lodash.merge');
 
 export default class ServerlessOfflineStreamsPlugin {
     commands: object = []
@@ -16,9 +15,9 @@ export default class ServerlessOfflineStreamsPlugin {
 
     activeHandlers: StreamHandler[] = []
 
-    constructor(private serverless: Serverless, cliOptions: StringKeyObject<any>, {log}) {
+    constructor(private serverless: Serverless, cliOptions: StringKeyObject<any>, {log}: { log: any }) {
         setLog(log)
-        
+
         this.options = mergeOptions(serverless, cliOptions)
         getLogger().debug('options:' + JSON.stringify(this.options || {}, undefined, 2));
 

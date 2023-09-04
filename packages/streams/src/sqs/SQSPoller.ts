@@ -39,9 +39,12 @@ interface MessageProcessResult {
 
 export default class SQSPoller {
     private pollInterval: number
-    private nextPoll: NodeJS.Timeout
+    private nextPoll: NodeJS.Timeout | undefined
 
     constructor(private options: StringKeyObject<any>, private config: SqsPluginConfiguration, private queueDefinitions: ActiveQueueDef[], private lambda: any) {
+        this.pollInterval = config.pollConfig?.minIntervalMs!
+
+
     }
 
     start() {
@@ -60,22 +63,22 @@ export default class SQSPoller {
     private _scheduleNextPoll(messagesRetrievedOnLastPoll: boolean) {
         const getNextPollInterval = (): number => {
             const {pollConfig} = this.config
-            const {strategy, fixedIntervalMs, minIntervalMs, maxIntervalMs, backoffType, intervalStepMs} = pollConfig
+            const {strategy, fixedIntervalMs, minIntervalMs, maxIntervalMs, backoffType, intervalStepMs} = pollConfig!
 
             if (strategy === 'backoff') {
                 if (!this.pollInterval || messagesRetrievedOnLastPoll) {
-                    return minIntervalMs
+                    return minIntervalMs!
                 }
                 if (backoffType === 'double') {
-                    return Math.min(maxIntervalMs, this.pollInterval * 2)
+                    return Math.min(maxIntervalMs!, this.pollInterval * 2)
                 }
-                return Math.min(maxIntervalMs, this.pollInterval + intervalStepMs)
+                return Math.min(maxIntervalMs!, this.pollInterval + intervalStepMs!)
             }
-            return fixedIntervalMs
+            return fixedIntervalMs!
         }
 
         this.pollInterval = getNextPollInterval()
-        this.nextPoll = setTimeout(this._poll.bind(this) + this.pollInterval)
+        this.nextPoll = setTimeout(this._poll.bind(this), this.pollInterval)
         getLogger().debug("Next poll interval: " + this.pollInterval)
     }
 
@@ -98,7 +101,7 @@ export default class SQSPoller {
         const {pollConfig} = this.config
         const noMessagesResult = {retrievedMessageCount: 0, successMessageCount: 0, failedMessageCount: 0}
 
-        const processInternal = async () => {
+        const processInternal = async (): Promise<MessageProcessResult> => {
             const response = await queue.sqsClient.send(new ReceiveMessageCommand({
                 QueueUrl: queue.url,
                 MaxNumberOfMessages: 10
@@ -109,7 +112,7 @@ export default class SQSPoller {
             const messageCount = messages?.length || 0;
             if (messageCount > 0) {
                 getLogger().debug(`Retrieved ${messageCount} messages for '${queue.name}`)
-                const invocationResult = await this._invokeHandlersForQueue(queue, messages)
+                const invocationResult = await this._invokeHandlersForQueue(queue, messages || [])
                 const {successMessages, successMessageIds, failedMessages, failedMessageIds} = invocationResult
 
                 if (successMessages.length > 0) {
@@ -124,9 +127,9 @@ export default class SQSPoller {
                     getLogger().debug(`Failed to handle message Ids: ${setToString(failedMessageIds)}`)
                 }
 
-                const results = pollConfig.drainQueues ? await processInternal() : noMessagesResult
+                const results = pollConfig?.drainQueues ? await processInternal() : noMessagesResult
                 return {
-                    retrievedMessageCount: messages.length + results.retrievedMessageCount,
+                    retrievedMessageCount: (messages?.length || 0) + results.retrievedMessageCount,
                     successMessageCount: successMessages.length + results.successMessageCount,
                     failedMessageCount: failedMessages.length + results.failedMessageCount
                 }
@@ -160,8 +163,8 @@ export default class SQSPoller {
                 md5OfBody: m.MD5OfBody,
                 eventSource: "aws:sqs",
                 eventSourceARN: queue.arn,
-                awsRegion: this.options.region
-            }))
+                awsRegion: this.options?.['region']!
+            }) as SqsRecord)
         }
         getLogger().debug("Using event: " + event)
 
@@ -174,9 +177,9 @@ export default class SQSPoller {
                 (r?.batchItemFailures || []).map(f => f.itemIdentifier)
             ).flat()
         )
-        const failedMessages = messages.filter(m => failedMessageIds.has(m.MessageId))
-        const successMessages = messages.filter(m => !failedMessageIds.has(m.MessageId))
-        const successMessageIds = new Set(successMessages.map(v => v.MessageId))
+        const failedMessages = messages.filter(m => failedMessageIds.has(m.MessageId!))
+        const successMessages = messages.filter(m => !failedMessageIds.has(m.MessageId!))
+        const successMessageIds = new Set(successMessages.map(v => v.MessageId!))
 
         return {failedMessageIds, failedMessages, successMessageIds, successMessages}
     }

@@ -7,10 +7,12 @@ export const getQueueNameFromArnParts = (parts: string[]) => parts[5]
 export const getQueueNameFromArn = (localEndpoint: string, resources: StringKeyObject<any>) => (arn: any) => {
     return extractResourceNameFromArn(
         getQueueNameFromArnParts,
-        (key) => getQueueDefinitionsFromResources(localEndpoint, resources)
-            .filter(queue => queue.resourceKey === key)
-            .map(queue => queue.name)
-            .find(_ => true),
+        (key) => {
+            return (getQueueDefinitionsFromResources(localEndpoint, resources)
+                .filter(queue => queue.resourceKey === key)
+                .map(queue => queue.name)
+                .find(_ => true))!;
+        },
     )(arn)
 }
 

@@ -19,7 +19,7 @@ describe('utils', () => {
     })
 
     describe('extractResourceNameFromArn', () => {
-        const resources = {k3: {name: "RES3"}, k4: {name: "RES4"}}
+        const resources = {k3: {name: "RES3"}, k4: {name: "RES4"}} as any
         const func = extractResourceNameFromArn(
             parts => parts[2],
             key => resources[key]?.name,

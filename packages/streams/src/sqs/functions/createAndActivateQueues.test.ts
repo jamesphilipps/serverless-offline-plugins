@@ -47,7 +47,7 @@ describe('createAndActivateQueues', () => {
 
     it('does nothing if no defined or existing queues', async () => {
         const config = createConfig(false)
-        const definedQueues = []
+        const definedQueues: QueueDef[] = []
 
         onListQueuesReturn(sqsClientMock, [])
 
@@ -152,8 +152,8 @@ describe('createAndActivateQueues', () => {
             name: 'Queue1',
             endpoint: 'https://sqs.eu-west-2.amazonaws.com',
             url: 'https://sqs.eu-west-2.amazonaws.com/4445555666/Queue1',
-            source:"CONFIG",
-            targetType:"REMOTE"
+            source: "CONFIG",
+            targetType: "REMOTE"
         });
 
         const definedQueues: QueueDef[] = [queueDef1]

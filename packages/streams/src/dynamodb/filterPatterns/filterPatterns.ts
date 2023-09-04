@@ -6,7 +6,7 @@ const AWSRuleKeys = new Set(["anything-but"])
 
 const isDataContainer = (v: any): boolean => !!(v && typeof v === 'object' && Object.keys(v).length === 1)
 const dataContainerKey = (v: object) => Object.keys(v)[0]
-const dataContainerValue = (v: object) => v[dataContainerKey(v)]
+const dataContainerValue = (v: Record<string, any>) => v[dataContainerKey(v)]
 
 
 const isPrimitiveScalar = (v: any): boolean => new Set(['boolean', 'string', 'number']).has(typeof v)
@@ -28,7 +28,7 @@ const toScalar = (data: any): Array<any> => {
     if (isAwsScalar(data)) {
         const dataTypeKey = Object.keys(data)[0];
         if (dataTypeKey === 'NULL') {
-            return null
+            return []
         }
         return toScalar(data[dataTypeKey])
     }
@@ -88,7 +88,7 @@ const isMatch = (p: any, data: any) => evalReduceOr([
     isBeginsWithMatch
 ], f => f.apply(null, [p, data]))
 
-const evalNested = (patternData: any, eventData: any) => {
+const evalNested = (patternData: any, eventData: any): boolean => {
     if (isScalar(patternData) && isScalar(eventData)) {
         const patternDataScalar = toScalar(patternData);
         const eventDataScalar = toScalar(eventData)

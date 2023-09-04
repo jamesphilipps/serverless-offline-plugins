@@ -1,19 +1,19 @@
 import * as Serverless from "serverless";
 import PluginConfiguration from "./PluginConfiguration";
 import {SLS_CUSTOM_OPTION} from "./constants";
-import {SlsOfflineLambdaFunctionDefinition} from "./types";
+import type {Lambda as LambdaType} from 'serverless-offline/lambda';
 
 export type StringKeyObject<T> = { [key: string]: T }
 
 export const getPluginConfiguration = (serverless: Serverless): PluginConfiguration | undefined => serverless.service.custom[SLS_CUSTOM_OPTION]
 
-export const getHandlersAsLambdaFunctionDefinitions = (serverless: Serverless) => {
+export const getHandlersAsLambdaFunctionDefinitions = (serverless: Serverless): LambdaType[] => {
     const {service} = serverless
     return service.getAllFunctions()
-        .map((functionKey: string): SlsOfflineLambdaFunctionDefinition => ({
+        .map((functionKey: string): LambdaType => ({
             functionKey,
             functionDefinition: service.getFunction(functionKey)
-        }))
+        } as any))
 }
 
 export const extractResourceNameFromArn = (
@@ -79,6 +79,6 @@ export const keyMerge = <T>(
 
 
 // TODO: test
-export const mapBy = <T>(vals: T[], keyFunc: (T) => string) => Object.fromEntries(
+export const mapBy = <T>(vals: T[], keyFunc: (v: T) => string) => Object.fromEntries(
     vals.map((v) => [keyFunc(v), v] as [string, T])
 )
