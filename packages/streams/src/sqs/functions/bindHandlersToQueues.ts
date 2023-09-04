@@ -7,7 +7,7 @@ import {
     SqsEventMappingDefinition,
     StreamsEventMapping
 } from "../../StreamFunctionDefinitions";
-import {log, LOG_MARKER, logDebug} from "../../logging";
+import {getLogger,} from "../../logging";
 import {getQueueNameFromArn} from "../utils";
 
 const bindHandlersToQueues = (
@@ -46,7 +46,7 @@ const bindHandlersToQueues = (
                     // Warn the user or error if there isn't an active queue definition for this event binding
                     const message = `No queue definition with arn: '${arnStr}' found, but it was referenced by an event mapping in function: '${functionName}'`
                     if (config.errorOnMissingQueueDefinition) throw Error(message)
-                    else log(`${LOG_MARKER} WARNING: ${message}`)
+                    else getLogger().info(`WARNING: ${message}`)
                     return undefined
                 }
             }).filter(v => !!v)

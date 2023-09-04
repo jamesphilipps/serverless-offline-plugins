@@ -1,6 +1,6 @@
 import {Writable} from "stream"
 import * as  DynamodbStreamsReadable from "dynamodb-streams-readable"
-import {log, logDebug} from "../logging";
+
 import * as Serverless from "serverless";
 import {SLS_CUSTOM_OPTION} from "../constants";
 import {FunctionWithStreamEvents} from "./support";
@@ -12,6 +12,7 @@ import {DynamoDbStreamsEventDefinition} from "./types";
 import * as DynamodbStreamsClient from "aws-sdk/clients/dynamodbstreams"
 import {FilterPatterns} from "./filterPatterns/filterGrammar";
 import {StringKeyObject} from "../utils";
+import {getLogger} from "../logging";
 
 export default class DynamoDBStreamsController {
     private readonly dynamodbClient: DynamoDBClient
@@ -31,7 +32,7 @@ export default class DynamoDBStreamsController {
                 return events
                     .filter((event) => event.stream.enabled !== false)
                     .map(async (event) => {
-                        logDebug("Creating stream for event", event)
+                        getLogger().debug("Creating stream for event" + event)
                         const tableName = this._extractTableNameFromARN(event.stream.arn)
                         const {Table: {LatestStreamArn}} = await this._describeTable(tableName)
                         const streamDesc = await this.dynamodbStreamsClient.describeStream({StreamArn: LatestStreamArn}).promise()
@@ -94,13 +95,13 @@ export default class DynamoDBStreamsController {
 
 
         const applyEventFilters = (filterPatterns: FilterPatterns[], event: any): boolean => {
-            logDebug("filterPatterns", filterPatterns)
-            logDebug("event", event)
+            getLogger().debug("filterPatterns" + filterPatterns)
+            getLogger().debug("event" + event)
 
             if (!filterPatterns || filterPatterns.length == 0 || allowEvent(filterPatterns, event)) {
                 return true
             } else {
-                log("Filtered DynamoDb streams event")
+                getLogger().info("Filtered DynamoDb streams event")
                 return false
             }
         }
@@ -120,8 +121,8 @@ export default class DynamoDBStreamsController {
         const writable = new Writable({
             objectMode: true,
             write: (records: any[], _: any, cb: (error?: Error | null) => void) => {
-                log(`Received ${records.length} DynamoDb streams events`)
-                logDebug(event)
+                getLogger().info(`Received ${records.length} DynamoDb streams events`)
+                getLogger().debug(JSON.stringify(event))
                 const {filterPatterns} = event.stream
                 const filteredRecords = records
                     .filter((r) => applyEventFilters(filterPatterns, r))

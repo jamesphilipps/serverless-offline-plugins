@@ -1,6 +1,5 @@
 import * as Serverless from "serverless"
 import {LogOptions} from "serverless"
-import {logDebug, setLog} from "./logging";
 import {SLS_CUSTOM_OPTION, SLS_OFFLINE_OPTION} from "./constants";
 import {StreamHandler} from "./StreamHandler";
 import {SQStreamHandler} from "./sqs/SQStreamHandler";
@@ -8,6 +7,7 @@ import {DynamoDBStreamHandler} from "./dynamodb/DynamoDBStreamHandler";
 import {getDefaultPluginConfiguration, validateConfig} from "./PluginConfiguration";
 import {getPluginConfiguration, StringKeyObject} from "./utils";
 import objectMerge = require('lodash.merge');
+import {getLogger, setLog} from "./logging";
 
 export default class ServerlessOfflineStreamsPlugin {
     commands: object = []
@@ -16,11 +16,11 @@ export default class ServerlessOfflineStreamsPlugin {
 
     activeHandlers: StreamHandler[] = []
 
-    constructor(private serverless: Serverless, cliOptions: StringKeyObject<any>) {
-        setLog((...args: [string, string, LogOptions]) => serverless.cli.log(...args))
-
+    constructor(private serverless: Serverless, cliOptions: StringKeyObject<any>, {log}) {
+        setLog(log)
+        
         this.options = mergeOptions(serverless, cliOptions)
-        logDebug('options:', JSON.stringify(this.options || {}, undefined, 2));
+        getLogger().debug('options:' + JSON.stringify(this.options || {}, undefined, 2));
 
         this.hooks = {
             "offline:start:init": this.start.bind(this),
@@ -33,15 +33,15 @@ export default class ServerlessOfflineStreamsPlugin {
         const config = validateConfig(
             objectMerge(getDefaultPluginConfiguration(), getPluginConfiguration(this.serverless))
         )
-        logDebug("Plugin Config", JSON.stringify(config, undefined, 2))
+        getLogger().debug("Plugin Config" + JSON.stringify(config, undefined, 2))
 
 
         if (config.dynamodb.enabled) {
-            logDebug("DynamoDB handler is enabled")
+            getLogger().debug("DynamoDB handler is enabled")
             this.activeHandlers.push(new DynamoDBStreamHandler(this.serverless, this.options))
         }
         if (config.sqs.enabled) {
-            logDebug("SQS handler is enabled")
+            getLogger().debug("SQS handler is enabled")
             this.activeHandlers.push(new SQStreamHandler(this.serverless, this.options, config.sqs))
         }
 

@@ -2,7 +2,6 @@ import * as Serverless from "serverless";
 import PluginConfiguration from "./PluginConfiguration";
 import {SLS_CUSTOM_OPTION} from "./constants";
 import {SlsOfflineLambdaFunctionDefinition} from "./types";
-import {logDebug} from "./logging";
 
 export type StringKeyObject<T> = { [key: string]: T }
 

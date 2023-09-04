@@ -2,7 +2,6 @@ import {QueueDef} from "../QueueDef";
 import mergeQueueDefinitions from "./mergeQueueDefinitions";
 import {SqsPluginConfiguration} from "../../PluginConfiguration";
 import {StringKeyObject} from "../../utils";
-import {logDebug} from "../../logging";
 
 //TODO: test
 

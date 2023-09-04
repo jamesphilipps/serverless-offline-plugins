@@ -1,8 +1,8 @@
 import {ActiveQueueDef} from "./QueueDef";
-import {logDebug} from "../logging";
 import {DeleteMessageBatchCommand, Message, ReceiveMessageCommand} from "@aws-sdk/client-sqs";
 import {SqsPluginConfiguration} from "../PluginConfiguration";
 import {StringKeyObject} from "../utils";
+import {getLogger} from "../logging";
 
 interface HandlerInvocationResult {
     successMessageIds: Set<string>
@@ -75,12 +75,12 @@ export default class SQSPoller {
         }
 
         this.pollInterval = getNextPollInterval()
-        this.nextPoll = setTimeout(this._poll.bind(this), this.pollInterval)
-        logDebug("Next poll interval: ", this.pollInterval)
+        this.nextPoll = setTimeout(this._poll.bind(this) + this.pollInterval)
+        getLogger().debug("Next poll interval: " + this.pollInterval)
     }
 
     private async _poll() {
-        logDebug("Polling SQS queues..")
+        getLogger().debug("Polling SQS queues..")
         const processResults = await Promise.all(
             this.queueDefinitions.map(async (queue) => this._processMessages(queue))
         )
@@ -89,7 +89,7 @@ export default class SQSPoller {
             .map(r => r.retrievedMessageCount)
             .reduce((acc, v) => acc + v, 0)
 
-        logDebug("Finished polling SQS queues")
+        getLogger().debug("Finished polling SQS queues")
 
         this._scheduleNextPoll(retrievedMessageCount > 0)
     }
@@ -103,25 +103,25 @@ export default class SQSPoller {
                 QueueUrl: queue.url,
                 MaxNumberOfMessages: 10
             }))
-            logDebug(response)
+            getLogger().debug(JSON.stringify(response))
 
             const messages = response.Messages;
             const messageCount = messages?.length || 0;
             if (messageCount > 0) {
-                logDebug(`Retrieved ${messageCount} messages for '${queue.name}`)
+                getLogger().debug(`Retrieved ${messageCount} messages for '${queue.name}`)
                 const invocationResult = await this._invokeHandlersForQueue(queue, messages)
                 const {successMessages, successMessageIds, failedMessages, failedMessageIds} = invocationResult
 
                 if (successMessages.length > 0) {
-                    logDebug(`Successfully handled message Ids: ${setToString(successMessageIds)}`)
-                    logDebug(`Removing successfully handled messages from queue..`)
+                    getLogger().debug(`Successfully handled message Ids: ${setToString(successMessageIds)}`)
+                    getLogger().debug(`Removing successfully handled messages from queue..`)
                     await queue.sqsClient.send(new DeleteMessageBatchCommand({
                         QueueUrl: queue.url,
                         Entries: successMessages.map(m => ({Id: m.MessageId, ReceiptHandle: m.ReceiptHandle}))
                     }))
                 }
                 if (failedMessages.length > 0) {
-                    logDebug(`Failed to handle message Ids: ${setToString(failedMessageIds)}`)
+                    getLogger().debug(`Failed to handle message Ids: ${setToString(failedMessageIds)}`)
                 }
 
                 const results = pollConfig.drainQueues ? await processInternal() : noMessagesResult
@@ -137,14 +137,14 @@ export default class SQSPoller {
 
         const results = await processInternal()
         if (results.retrievedMessageCount === 0) {
-            logDebug(`No messages for '${queue.name}`)
+            getLogger().debug(`No messages for '${queue.name}`)
         }
         return results
     }
 
     private async _invokeHandlersForQueue(queue: ActiveQueueDef, messages: Message[]): Promise<HandlerInvocationResult> {
         const invokeHandler = (handlerName: string, event: SqsEvent): SqsHandlerResponse => {
-            logDebug(`Invoking handler: '${handlerName}'`)
+            getLogger().debug(`Invoking handler: '${handlerName}'`)
             const lambdaFunction = this.lambda.get(handlerName)
             lambdaFunction.setEvent(event)
             return lambdaFunction.runHandler()
@@ -163,7 +163,7 @@ export default class SQSPoller {
                 awsRegion: this.options.region
             }))
         }
-        logDebug("Using event: ", event)
+        getLogger().debug("Using event: " + event)
 
         const handlerResults = await Promise.all(
             queue.handlerFunctions.map((handlerName) => invokeHandler(handlerName, event))

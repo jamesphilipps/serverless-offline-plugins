@@ -1,7 +1,7 @@
 import {DynamoDbStreamsEventDefinition} from "./types";
-import {log} from "../logging";
 import {StringKeyObject} from "../utils";
 import {FunctionDefinition, SlsOfflineLambdaFunctionDefinition} from "../types";
+import {getLogger} from "../logging";
 
 export type Event = DynamoDbStreamsEventDefinition | any
 
@@ -23,7 +23,7 @@ const getStreamEvents = (functionDef: FunctionDefinition): DynamoDbStreamsEventD
     .map(event => event as DynamoDbStreamsEventDefinition)
 
 export const getTableName = (resources: StringKeyObject<any>) => (resourceKey: string) => {
-    log(JSON.stringify(resources))
+    getLogger(). info(JSON.stringify(resources))
     const tableName = resources[resourceKey]?.Properties?.TableName
     if (!tableName) throw Error(`Could not find table name at '${resourceKey}.Properties.TableName'`)
     return tableName

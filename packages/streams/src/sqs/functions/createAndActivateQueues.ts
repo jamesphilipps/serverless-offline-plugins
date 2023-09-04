@@ -4,7 +4,7 @@ import {SqsPluginConfiguration} from "../../PluginConfiguration";
 import {getQueueNameFromArnString} from "../utils";
 import {mapBy} from "../../utils";
 import {CreateSQSClientFunc} from "./createSQSClient";
-import {logDebug} from "../../logging";
+import {getLogger} from "../../logging";
 
 export interface ExistingQueueDetails {
     name: string,
@@ -36,7 +36,7 @@ const createQueues = async (sqsClient: SQSClient, queueDefinitions: QueueDef[]):
     return Promise.all(
         queueDefinitions.map(async (queue) => {
             // TODO: support RedrivePolicy
-            logDebug("Creating local queue", queue)
+            getLogger().debug("Creating local queue" + queue)
             const createResult = await sqsClient.send(new CreateQueueCommand({
                 QueueName: queue.name,
                 Attributes: {
@@ -55,13 +55,13 @@ const createAndActivateLocalQueues = async (config: SqsPluginConfiguration, sqsC
     const queuesToActivate = definedQueues
         .filter(queue => config.localQueueManagement.createFromResources || queue.source !== 'RESOURCES') // Filter resource queues if flag set
 
-    logDebug("will attempt to active the following queues", queuesToActivate)
+    getLogger().debug("will attempt to active the following queues" + queuesToActivate)
 
     // Get all queues that currently exist in the MQ instance
     const existingQueues = await getExistingQueues(sqsClient)
     const existingQueueNames = new Set(existingQueues.map(queue => queue.name))
 
-    logDebug("The following queues already exist in the mq instance:", Array.from(existingQueueNames))
+    getLogger().debug("The following queues already exist in the mq instance:" + Array.from(existingQueueNames))
 
     // Create any queues which are defined but do not currently exist
     const queuesToCreate = config.localQueueManagement.createFromResources ?
@@ -69,7 +69,7 @@ const createAndActivateLocalQueues = async (config: SqsPluginConfiguration, sqsC
             .filter((queue) => !existingQueueNames.has(queue.name)) // Doesn't exist
             .filter((queue) => queue.create !== false) : // Not excluded from creation
         []
-    logDebug("Will create the following queues:", Array.from(existingQueueNames))
+    getLogger().debug("Will create the following queues:" + Array.from(existingQueueNames))
 
     const createdActiveQueues = await createQueues(sqsClient, queuesToCreate)
     const createdQueueNames = new Set(createdActiveQueues.map(queue => queue.name))

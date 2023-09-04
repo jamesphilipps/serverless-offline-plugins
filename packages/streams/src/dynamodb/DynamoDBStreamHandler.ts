@@ -1,11 +1,11 @@
-import {log} from "../logging";
 import DynamoDBStreamsController from "./DynamoDBStreamsController";
-import { getFunctionsWithStreamEvents} from "./support";
+import {getFunctionsWithStreamEvents} from "./support";
 import * as Serverless from "serverless";
-import { lambda as Lambda} from 'serverless-offline'
+import {lambda as Lambda} from 'serverless-offline'
 import {StreamHandler} from "../StreamHandler";
 import {StringKeyObject} from "../utils";
 import {FunctionDefinition} from "../types";
+import {getLogger} from "../logging";
 
 
 export class DynamoDBStreamHandler implements StreamHandler {
@@ -18,7 +18,7 @@ export class DynamoDBStreamHandler implements StreamHandler {
     async start() {
         const {service} = this.serverless
 
-        log(`Starting Offline Dynamodb Streams: ${this.options.stage}/${this.options.region}..`)
+        getLogger().info(`Starting Offline Dynamodb Streams: ${this.options.stage}/${this.options.region}..`)
         this.slsOfflineLambda = new Lambda(this.serverless, this.options)
         this.streamsController = new DynamoDBStreamsController(this.serverless, this.slsOfflineLambda, this.options)
 
@@ -28,11 +28,11 @@ export class DynamoDBStreamHandler implements StreamHandler {
         // Create lambdas
         this.slsOfflineLambda.create(functionsWithStreamEvents)
         await this.streamsController.start(functionsWithStreamEvents)
-        log(`Started Offline Dynamodb Streams. Created ${this.streamsController.count()} streams`)
+        getLogger().info(`Started Offline Dynamodb Streams. Created ${this.streamsController.count()} streams`)
     }
 
     async shutdown() {
-        log("Halting Offline Dynamodb Streams..")
+        getLogger().info("Halting Offline Dynamodb Streams..")
 
         const cleanupPromises = []
 
