@@ -1,7 +1,7 @@
 {
   "name": "serverless-offline-streams",
   "description": "This plugin provides support for event driven systems using Serverless Offline",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "main": "./dist/index.js",
   "license": "MIT",
   "keywords": [
@@ -26,13 +26,13 @@
     "compile:watch": "tsc --build -w"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "3.51.0",
-    "@aws-sdk/client-sqs": "3.51.0",
+    "@aws-sdk/client-dynamodb": "^3.385.0",
+    "@aws-sdk/client-sqs": "^3.385.0",
     "dynamodb-streams-readable": "^2.0.0",
     "lodash.merge": "^4.6.2"
   },
   "devDependencies": {
-    "@aws-sdk/client-s3": "3.51.0",
+    "@aws-sdk/client-s3": "^3.385.0",
     "@serverless/typescript": "^3.1.1",
     "@types/jest": "^27.4.0",
     "@types/lodash.merge": "^4.6.6",
